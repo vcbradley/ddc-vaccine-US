@@ -10,4 +10,5 @@ dir_priv <- "~/Dropbox/ddi-covid-studies/"
 
 
 file_copy(path(dir_priv, ".gitignore"), new_path = ".", overwrite = TRUE)
+file_copy(path(dir_priv, ".gitattributes"), new_path = ".", overwrite = TRUE)
 file_copy(dir_ls(dir_priv, regexp = "(08|09).*\\.R$"), new_path = ".", overwrite = TRUE)
