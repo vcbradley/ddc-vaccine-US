@@ -1,0 +1,6 @@
+
+*.DS_Store
+.Rhistory
+.Rapp.history
+covid-empirical/data/*
+.Rproj.user
