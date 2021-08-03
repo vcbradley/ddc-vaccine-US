@@ -38,16 +38,14 @@ dfp_fmt <- dfp_raw %>%
   )
 
 # fivethirtyeight metadata
-# fte <- read_csv("~/Downloads/covid-19-polls-master/covid_approval_polls.csv")
-# fte %>% filter(start_date >= "2021-01-01") %>% count(pollster, sort = TRUE)
 
 
 # get estimates ------
-
 ## Ipsos ----
 df_IP <- ip_df %>%
   group_by(date) %>%
   summarize(
+    wave = as.numeric(unique(WAVE)),
     vax_w = weighted.mean(vaccinated, wt_final, na.rm = TRUE),
     vax_raw = mean(vaccinated, na.rm = TRUE),
     n_raw = sum(!is.na(vaccinated)),
@@ -68,6 +66,8 @@ df_DFP <- dfp_fmt %>%
   ) %>%
   filter(n_raw > 0)
 
+# check dates
+# dfp_fmt %>% semi_join(distinct(df_DFP, wave)) %>%  count(wave, date) %>% ggplot(aes(x = date, fill = factor(wave))) + geom_col(aes(y = n))
 
 ## Morning Consult ----
 df_MC <- tribble(
@@ -82,28 +82,29 @@ df_MC <- tribble(
   "MC", "2021-05-03", 0.52,
   "MC", "2021-05-10", 0.54,
   "MC", "2021-05-17", 0.55
-)
+) %>%
+  mutate(wave = 1:n()) # fake wave
 
 # Harris
 df_HR <- tribble(
-~wave, ~date, ~vax_w, ~n_w,
-48, "2021-01-25", 0.08, 1956,
-49, "2021-01-31", 0.10, 2025,
-50, "2021-02-07", 0.12, 2043,
-51, "2021-02-14", 0.14, 1984,
-52, "2021-02-21", 0.14, 1961,
-53, "2021-02-28", 0.21, 2000,
-54, "2021-03-07", 0.21, 1963,
-55, "2021-03-14", 0.28, 1977,
-56, "2021-03-21", 0.30, 1948, # A
-57, "2021-03-28", 0.32, 1989,
-58, "2021-04-04", 0.36, 1943,
-59, "2021-04-11", 0.37, 1963,
-60, "2021-04-18", 0.42, 2024,
-61, "2021-04-25", 0.43, 2097,
-62, "2021-05-02",  0.45, 2096,
-63, "2021-05-09", 0.47, 2062,
-64, "2021-05-16", 0.48, 2063
+  ~wave, ~date, ~vax_w, ~n_w,
+  48, "2021-01-25", 0.08, 1956,
+  49, "2021-01-31", 0.10, 2025,
+  50, "2021-02-07", 0.12, 2043,
+  51, "2021-02-14", 0.14, 1984,
+  52, "2021-02-21", 0.14, 1961,
+  53, "2021-02-28", 0.21, 2000,
+  54, "2021-03-07", 0.21, 1963,
+  55, "2021-03-14", 0.28, 1977,
+  56, "2021-03-21", 0.30, 1948, # A
+  57, "2021-03-28", 0.32, 1989,
+  58, "2021-04-04", 0.36, 1943,
+  59, "2021-04-11", 0.37, 1963,
+  60, "2021-04-18", 0.42, 2024,
+  61, "2021-04-25", 0.43, 2097,
+  62, "2021-05-02",  0.45, 2096,
+  63, "2021-05-09", 0.47, 2062,
+  64, "2021-05-16", 0.48, 2063
 )
 
 
@@ -116,7 +117,7 @@ polls_est <- bind_rows(
   df_DFP %>% mutate(pollster = "DFP"),
   df_MC  %>% mutate(date = lubridate::as_date(date)),
   df_IP  %>% mutate(pollster = "Ipsos"),
-  df_HR %>% mutate(date = lubridate::as_date(date), pollster = "Harris")
+  df_HR  %>% mutate(date = lubridate::as_date(date), pollster = "Harris")
 )
 
 ns <- polls_est %>%
@@ -129,7 +130,7 @@ ns <- polls_est %>%
   )
 
 ests <- polls_est %>%
-  select(date, pollster, matches("vax_")) %>%
+  select(wave, date, pollster, matches("vax_")) %>%
   pivot_longer(
     cols = c(vax_w, vax_raw),
     names_pattern = "vax_(w|raw)",
@@ -149,7 +150,6 @@ vax_df <- left_join(
                 pollster = "CDC",
                 vax = pct_pop_vaccinated)
   )
-
 
 write_csv(vax_df, "small-polls_toplines.csv")
 
