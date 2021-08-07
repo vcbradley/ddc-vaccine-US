@@ -37,8 +37,6 @@ dfp_fmt <- dfp_raw %>%
     vaccinated = as.numeric(vax == 1)
   )
 
-# fivethirtyeight metadata
-
 
 # get estimates ------
 ## Ipsos ----
@@ -67,11 +65,16 @@ df_DFP <- dfp_fmt %>%
   filter(n_raw > 0)
 
 # check dates
-# dfp_fmt %>% semi_join(distinct(df_DFP, wave)) %>%  count(wave, date) %>% ggplot(aes(x = date, fill = factor(wave))) + geom_col(aes(y = n))
+# dfp_fmt %>%
+# 　semi_join(distinct(df_DFP, wave)) %>%
+#   count(wave, date) %>%
+#   ggplot(aes(x = date, fill = factor(wave))) +
+#   geom_col(aes(y = n))
 
 ## Morning Consult ----
+# https://morningconsult.com/covid19-vaccine-dashboard/
 df_MC <- tribble(
-  ~pollster, ~date,  ~vax_w,
+  ~pollster, ~date_start,  ~vax_w,
   "MC", "2021-03-15", 0.26,
   "MC", "2021-03-22", 0.29,
   "MC", "2021-03-29", 0.35,
@@ -117,7 +120,8 @@ polls_est <- bind_rows(
   df_DFP %>% mutate(pollster = "DFP"),
   df_MC  %>% mutate(date = lubridate::as_date(date)),
   df_IP  %>% mutate(pollster = "Ipsos"),
-  df_HR  %>% mutate(date = lubridate::as_date(date), pollster = "Harris")
+  df_HR  %>% mutate(date = lubridate::as_date(date_start) + date(),
+                    pollster = "Harris")
 )
 
 ns <- polls_est %>%
