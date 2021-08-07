@@ -58,7 +58,7 @@ polls %>%
   scale_fill_manual(values = color_pal) +
   theme_pubclean() +
   guides(color = FALSE, fill = FALSE) +
-  labs(y = "At Least one Dose",
+  labs(y = "% Vaccinated (at least 1 dose)",
        x = NULL)
 
 ggsave("figures/vax_onlinepolls.pdf", w = 7.5, h = 2.5)
