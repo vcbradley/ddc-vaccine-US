@@ -5,7 +5,8 @@ pkg.list = c('data.table', 'ggplot2', 'gridExtra'
              , 'curl', 'dplyr', 'R.utils'
              , 'tidyr', 'lemon', 'readxl'
              , 'survey', 'lubridate'
-             , 'glue', 'patchwork', 'ggrepel')
+             , 'glue', 'patchwork', 'ggrepel'
+             , 'rjson',  'imputeTS')
 
 
 for (p in pkg.list){
@@ -37,7 +38,7 @@ hpwaves = list(data.frame(wave_num = 22, start_date = '20210106', end_date = '20
                , data.frame(wave_num = 29, start_date = '20210428', end_date = '20210510')
                , data.frame(wave_num = 30, start_date = '20210512', end_date = '20210524')
 )
-hpwaves = rbindlist(hpwaves) 
+hpwaves = rbindlist(hpwaves)
 hpwaves[, start_date := as.Date(start_date, format = '%Y%m%d')]
 hpwaves[, end_date := as.Date(end_date, format = '%Y%m%d')]
 
