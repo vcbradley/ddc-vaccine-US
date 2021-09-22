@@ -27,16 +27,6 @@ scale_values = c('CDC (benchmark)' = 'gray'#'#946eb7' #purple
                  #, '#A51C30' #red
 )
 
-
-hpwaves = list(data.frame(wave_num = 22, start_date = '20210106', end_date = '20210118')
-               , data.frame(wave_num = 23, start_date = '20210120', end_date = '20210201')
-               , data.frame(wave_num = 24, start_date = '20210203', end_date = '20210215')
-               , data.frame(wave_num = 25, start_date = '20210217', end_date = '20210301')
-               , data.frame(wave_num = 26, start_date = '20210303', end_date = '20210315')
-               , data.frame(wave_num = 27, start_date = '20210317', end_date = '20210329')
-               , data.frame(wave_num = 28, start_date = '20210414', end_date = '20210426')
-               , data.frame(wave_num = 29, start_date = '20210428', end_date = '20210510')
-               , data.frame(wave_num = 30, start_date = '20210512', end_date = '20210524')
 )
 hpwaves = rbindlist(hpwaves)
 hpwaves[, start_date := as.Date(start_date, format = '%Y%m%d')]
