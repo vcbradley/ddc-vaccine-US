@@ -226,7 +226,7 @@ getBenchmark = function(benchmark_date
                         , owid %>% mutate(source = 'OWID')
   )
   write.csv(benchmark
-            , file = file.path('data', paste0('benchmark_', benchmark_date, '.csv'))
+            , file = file.path('data', 'final', glue('benchmark_{benchmark_date}.csv'))
             , row.names = F)
 
 
