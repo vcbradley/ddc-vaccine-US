@@ -27,8 +27,4 @@ scale_values = c('CDC (benchmark)' = 'gray'#'#946eb7' #purple
                  #, '#A51C30' #red
 )
 
-)
-hpwaves = rbindlist(hpwaves)
-hpwaves[, start_date := as.Date(start_date, format = '%Y%m%d')]
-hpwaves[, end_date := as.Date(end_date, format = '%Y%m%d')]
 
