@@ -7,6 +7,7 @@ source('functions/functions_clean_CDC.R')
 source('functions/functions_clean_CHP.R')
 source('functions/functions_clean_FB.R')
 source('functions/functions_clean_others.R')
+source('functions/functions_calc_ddc.R')
 
 
 ######### PREP BENCHMARK DATA #########
@@ -70,7 +71,62 @@ all_polls <- left_join(all_polls %>% rename(source_poll = source)
 
 
 
+######### ADD IN BENCHMARK ERROR #########
+all_polls_witherror <- addBenchmarkError(all_polls
+                                         , error_levels = c(-0.1,-0.05, 0.05, 0.1)
+                                         , include_0 = T)
 
 
+######### CALCULATE DDC #########
+all_polls_witherror <- all_polls_witherror %>%
+  mutate(
+    # calculate pieces we need for ddc
+    f = n / pop_total
+    , error = pct_vaccinated - pct_pop_vaccinated
+    , sd_G = sqrt(pct_pop_vaccinated * (1 - pct_pop_vaccinated))
 
+    # get ddc and ddi
+    , ddc = error / (sqrt((pop_total - n) / n) * sd_G)
+    , ddi = ddc ^ 2
+
+    # calculate standard errors, MoEs and CIs
+    , se_samp = sqrt(pct_vaccinated * (1 - pct_vaccinated)/ n)
+    , MoE_samp = 2 * se_samp
+    , ci_2.5_samp = pct_vaccinated - MoE_samp
+    , ci_97.5_samp = pct_vaccinated + MoE_samp
+
+    # impute deff and MoE where missing
+    , deff = ifelse(is.na(deff), 1, deff)
+    , MoE = ifelse(is.na(MoE), MoE_samp * sqrt(deff), MoE)
+
+    # calculate CIs using MoEs that include variance from weighting
+    , ci_2.5_samp = pct_vaccinated - MoE
+    , ci_97.5_samp = pct_vaccinated + MoE
+
+    # calculate weighted ddc
+    , n_w = n / deff
+    , ddc_weighted = error / (sqrt((pop_total - n_w) / n_w) * sd_G)
+    , ddi_weighted = ddc_weighted ^ 2
+
+    # calculate classic effective sample size from weighting
+    , n_eff = n / deff
+    , f_eff = n_eff / pop_total
+
+    # calculate drop out odds, weighted and unweighted
+    , DO = (pop_total - n) / n
+    , DO_sqrt = sqrt(DO)
+    , DO_weighted = (pop_total - n_w) / n_w
+    , DO_weighted_sqrt = sqrt(DO)
+
+    # calculate bias-adjusted effective sample size
+    , n_eff_star = (sd_G / error) ^ 2
+    , n_eff_star_cap = ifelse(n_eff_star > n, n_eff, n_eff_star)
+
+    # calculate percent reduction in effective sample size
+    , pct_reduction_n_eff = 1 - (n_eff_star / n_eff)
+    , pct_reduction_n_eff_cap = 1 - (n_eff_star_cap / n_eff)
+  )
+
+
+write.csv(all_polls_witherror, file = file.path('data', 'final', 'all_polls_all_vars.csv'), row.names = F)
 

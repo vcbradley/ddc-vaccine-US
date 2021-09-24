@@ -311,19 +311,41 @@ prepCHPcombined = function(chp_waves = 22:29, overwrite_chp = F){
       , pct_hesitant_se = sqrt(n_hesitant_probably_SE^2 + n_hesitant_definitely_SE^2 + n_vaxunsure_SE^2)/pop_total
       , pct_willing_se = sqrt(n_willing_probably_SE^2 + n_willing_definitely_SE^2)/pop_total
       , MoE = 2 * sqrt(deff) * pct_vaccinated_se
-    )
+    ) %>% filter(subgroup == 'Total')
 
 
   # compare tables and microdata ests -- check that numbers match to 3 decimals
-  full_join(
-    chp_tables %>% select(wave, pop, pct_vaccinated_tab = pct_vaccinated, pct_willing_tab = pct_willing, pct_hesitant_tab = pct_hesitant)
-    , chp_microdata_agg %>% select(wave, pop, pct_vaccinated_micro = pct_vaccinated, pct_willing_micro = pct_willing, pct_hesitant_micro = pct_hesitant)
-  , by = c('wave', 'pop')) %>%
-    mutate(pct_vaccinated = trunc(pct_vaccinated_tab, 3) == trunc(pct_vaccinated_micro, 3)
-           , pct_willing = trunc(pct_willing_tab, 3) == trunc(pct_willing_micro, 3)
-           , pct_hesitant = trunc(pct_hesitant_tab, 3) == trunc(pct_hesitant_micro, 3)
+  chp_comp <- full_join(
+    chp_tables %>% select(wave, pop, subgroup, demo
+                          , pct_vaccinated_tab = pct_vaccinated
+                          , pct_willing_tab = pct_willing
+                          , pct_hesitant_tab = pct_hesitant
+                          , pct_vaccinated_SE_tab = pct_vaccinated_se
+                          , pct_willing_SE_tab = pct_willing_se
+                          , pct_hesitant_SE_tab = pct_hesitant_se
+                          )
+    , chp_microdata_agg %>% select(wave, pop, subgroup, demo
+                                   , pct_vaccinated_micro = pct_vaccinated
+                                   , pct_willing_micro = pct_willing
+                                   , pct_hesitant_micro = pct_hesitant
+                                   , pct_vaccinated_SE_micro = pct_vaccinated_se
+                                   , pct_willing_SE_micro = pct_willing_se
+                                   , pct_hesitant_SE_micro = pct_hesitant_se
+                                   )
+  , by = c('wave', 'pop', 'subgroup', 'demo'))
+
+  ggplot(chp_comp, aes(x = pct_vaccinated_tab, y = pct_vaccinated_micro)) + geom_point()
+
+  chp_comp %>%
+    mutate(pct_vaccinated_flag = trunc(pct_vaccinated_tab * 1000) == trunc(pct_vaccinated_micro * 1000)
+           , pct_willing_flag = trunc(pct_willing_tab * 1000) == trunc(pct_willing_micro * 1000)
+           , pct_hesitant_flag = trunc(pct_hesitant_tab * 1000) == trunc(pct_hesitant_micro * 1000)
+           , pct_vaccinated_SE_flag = as.numeric(trunc(pct_vaccinated_SE_tab * 1000) == trunc(pct_vaccinated_SE_micro * 1000))
+           , pct_willing_SE_flag = as.numeric(trunc(pct_willing_SE_tab * 1000) == trunc(pct_willing_SE_micro * 1000))
+           , pct_hesitant_SE_flag = as.numeric(trunc(pct_hesitant_SE_tab * 1000) == trunc(pct_hesitant_SE_micro * 1000))
            ) %>%
-    summarize(mean(pct_vaccinated), mean(pct_willing), mean(pct_hesitant))
+    summarize(mean(pct_vaccinated_flag, na.rm = T), mean(pct_willing_flag, na.rm = T), mean(pct_hesitant_flag, na.rm = T)
+              ,mean(pct_vaccinated_SE_flag, na.rm = T), mean(pct_willing_SE_flag, na.rm = T), mean(pct_hesitant_SE_flag, na.rm = T))
 
 
   # write out cleaned, final CHP data
