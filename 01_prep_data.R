@@ -100,8 +100,8 @@ all_polls_witherror <- all_polls_witherror %>%
     , MoE = ifelse(is.na(MoE), MoE_samp * sqrt(deff), MoE)
 
     # calculate CIs using MoEs that include variance from weighting
-    , ci_2.5_samp = pct_vaccinated - MoE
-    , ci_97.5_samp = pct_vaccinated + MoE
+    , ci_2.5 = pct_vaccinated - MoE
+    , ci_97.5 = pct_vaccinated + MoE
 
     # calculate weighted ddc
     , n_w = n / deff
