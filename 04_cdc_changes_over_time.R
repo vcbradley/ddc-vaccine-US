@@ -1,5 +1,7 @@
 source('_setup.R')
 
+######## GET AND PREP DATA ########
+
 # get names of all benchmark files
 files = list.files('data/final', pattern = 'benchmark_', full.names = T)
 
@@ -41,27 +43,21 @@ ggplot(cdc_snapshots, aes(x = as.Date(date), y = pct_of_first, color = as.charac
   theme_pubclean()
 
 
-#################
-
+######## MAKE PLOT #########
 # grab the 10 days leading up to 4/12 for each download date
 cdc_snapshots_subset <- cdc_snapshots %>%
-  filter(as.Date(date) > min(as.Date(download_date)) - 10, as.Date(date) <= min(as.Date(download_date))) %>%
-  mutate(days_of_data = as.numeric(min(download_date) - as.Date(date)) + 1
-         , days_since_first_report = as.numeric(as.Datedownload_date - min(download_date))
+  filter(date > min(download_date) - 10, date <= min(download_date)) %>%
+  mutate(days_of_data = as.numeric(min(download_date) - date) + 1
+         , days_since_first_report = as.numeric(download_date - min(download_date))
          , pct_increase = pct_of_first - 1
          )
 
+# get endpoint data for annotation
+annotate <- cdc_snapshots_subset %>% filter(days_since_first_report == max(days_since_first_report))
 
 
-all_cdc_benchmark_subset = all_cdc_benchmark[as.Date(date) > min(download_date) - 10 & as.Date(date) <= min(download_date)]
-all_cdc_benchmark_subset[, days_of_data :=  as.numeric(min(download_date) - as.Date(date)) + 1]
-all_cdc_benchmark_subset[, days_since_first_report := as.numeric(download_date - min(download_date)) ]
-all_cdc_benchmark_subset[, pct_increase := pct_of_first - 1]
-
-annotate = all_cdc_benchmark_subset[days_since_first_report == max(days_since_first_report)]
-
-all_cdc_benchmark_subset %>%
-  as_tibble() %>%
+# make plot
+cdc_snapshots_subset %>%
   ggplot(aes(x = days_since_first_report, y = pct_increase)) +
   geom_pointline(aes(group = days_of_data), alpha = 0.8) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 1),
@@ -84,8 +80,8 @@ all_cdc_benchmark_subset %>%
     color = 'Days of data (as of April 12)'
   )
 
-ggsave('plots/plt_benchmark_change.png',
-       width = 5, height = 2.5)
+# save
+ggsave('plots/fig_benchmark_change.png', width = 5, height = 2.5, units = 'in')
 
 
 
