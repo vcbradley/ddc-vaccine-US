@@ -54,7 +54,8 @@ plot_with_errorbands = function(data, outcome
 
 
 
-#### helper functioin for Fig 1
+#### helper function for Fig 1
+# makes all the inner plots
 plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', labels = NULL, title = NULL, annotate_df = NULL){
 
   if (type == 'est') {
@@ -64,8 +65,8 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
     y_est = paste0('pct_',outcome,'_',y_name)
     mean_diff = data %>% summarize(mean_diff = mean(get(y_est) - get(x_est), na.rm = T)) %>% pull()
 
-    data_min = min(data[,min(get(x_est))], data[,min(get(y_est))])
-    data_max = max(data[,max(get(x_est))], data[,max(get(y_est))])
+    data_min = data %>% select(x_est, y_est) %>% min()
+    data_max = data %>% select(x_est, y_est) %>% max()
 
     plot_min = data_min - 0.02*(data_max - data_min)
     plot_max = data_max + 0.02*(data_max - data_min)
@@ -88,7 +89,7 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
       scale_x_continuous(labels = scales::percent_format(accuracy = 1L), expand = c(0,0), limits = c(plot_min, plot_max)) +
       coord_equal()
 
-    data_avg = data[, .(x_mean = mean(get(x_est)), y_mean = mean(get(y_est)))]
+    data_avg = data %>% summarize(x_mean = mean(get(x_est)), y_mean = mean(get(y_est)))
     plt = plt +
       geom_point(data = data_avg, aes(x = x_mean, y = y_mean, color = 'State average'), color = 'red') +
       geom_text_repel(data = data_avg
@@ -114,7 +115,7 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
 
     plt = ggplot(data) +
       geom_point(aes(x = get(x_est), y = get(y_est)), color = 'gray40') +
-      #geom_text(data = biggest_rank_diffs[[outcome]], aes(x= get(paste0(x,'_rank_', outcome)), y = get(paste0(y,'_rank_', outcome)) + 2, label = pop), cex = 3.5) +
+      #geom_text(data = annotate_df, aes(x= get(paste0(x,'_rank_', outcome)), y = get(paste0(y,'_rank_', outcome)) + 2, label = pop), cex = 3.5) +
       geom_abline(slope = 1, lty = 2) +
       theme_pubr() + theme(panel.grid.major = element_blank()) + theme(panel.grid.minor = element_blank()) +
       annotate('text', x = 15, y = 2, label = 'highest', color = 'grey50') +
@@ -134,11 +135,11 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
   }
 
 
-  if (!is.null(title)) {
+  if(!is.null(title)) {
     plt = plt + ggtitle(title)
   }
 
-  if (!is.null(annotate_df)) {
+  if(!is.null(annotate_df)) {
     plt = plt +
       geom_text_repel(data = annotate_df
                       , aes(x = get(x_est), y = get(y_est), label = pop)
@@ -147,4 +148,120 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
   }
 
   return(plt)
+}
+
+
+
+### function for making fig to compare state-level polls to CDC and each other
+makeCompPlot <- function(df, show_states, labels){
+
+  # subset df for annotation based on jsut the states we want to show
+  annotate_df <- df %>% filter(pop %in% show_states)
+
+  combos_top = list(
+    list(x = 'hp', y = 'fb', outcome = 'hesitant', type = 'est')
+    , list(x = 'hp', y = 'fb', outcome = 'willing', type = 'est')
+    , list(x = 'hp', y = 'fb', outcome = 'vaccinated', type = 'est')
+    , list(x = 'hp', y = 'fb', outcome = 'hesitant', type = 'rank', annotate_df = annotate_df)
+    , list(x = 'hp', y = 'fb', outcome = 'willing', type = 'rank', annotate_df = annotate_df)
+    , list(x = 'hp', y = 'fb', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
+  )
+
+  combos_bottom = list(
+    list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'est')
+    , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'est')
+    , list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
+    , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
+  )
+
+
+  ##### Build plot in two stages
+  # 1) top - comparison b/w surveys
+  # 2) bottom - comparison w / CDC
+
+
+  ##### row and col titles used in both
+  # make column titles
+  col_titles = lapply(c('', 'Hesitant', 'Willing', 'Vaccinated'), function(t){
+    as_ggplot(text_grob(t,size = 14))+ theme(plot.margin = margin(0,0.25,0,0, "cm"))
+  })
+
+  # make row titles
+  row_titles = lapply(c('Estimated %', 'Rank'), function(t){
+    as_ggplot(text_grob(t,size = 14, rot = 90))+ theme(plot.margin = margin(0,0.25,0,0, "cm"))
+  })
+
+
+  ### Part 1 - top
+  # make list of all inner plots
+  plotlist_top <- lapply(combos_top, function(c){
+    plot_comparisons(data = df
+                     , outcome = c$outcome
+                     , x = c$x
+                     , y = c$y
+                     , type = c$type
+                     , labels = labels
+                     , annotate_df = c$annotate_df)
+  })
+
+  # combine and add panel names
+  inner_plots_top = ggarrange(plotlist = plotlist_top
+                              , ncol = 3, nrow = 2
+                              , labels = c('A', 'B','C','D','E','F'))
+
+  # make full top plot
+  full_top = wrap_plots(
+    wrap_plots(col_titles, nrow = 1, widths = c(1,3,3,3))
+    , wrap_plots(wrap_plots(row_titles, ncol = 1)
+                 , inner_plots_top
+                 , widths = c(0.5, 9)
+                 , nrow = 1)
+    , heights = c(0.5, 6)
+  )
+
+
+  #### Part 2 - bottom
+  #make a list of all inner plots
+  plotlist_bottom <- lapply(combos_bottom, function(c){
+    plot_comparisons(data = df
+                     , outcome = c$outcome
+                     , x = c$x
+                     , y = c$y
+                     , type = c$type
+                     , labels = labels
+                     , annotate_df = c$annotate_df)
+  })
+
+  # combine and add panel names
+  inner_plots_bottom = ggarrange(plotlist = plotlist_bottom
+                                 , ncol = 2, nrow = 2
+                                 , labels = c('G','H','I','J'))
+  full_bottom = wrap_plots(wrap_plots(row_titles, ncol = 1)
+                           , inner_plots_bottom
+                           , widths = c(0.5, 8)
+                           , nrow = 1)
+  # add title
+  full_bottom = wrap_plots(as_ggplot(text_grob('Comparison with CDC Vaccine Uptake',size = 18)) + theme(plot.margin = margin(0,0.25,0,0, "cm"))
+                           , full_bottom
+                           , ncol = 1
+                           , heights = c(1,6))
+
+  # add padding
+  full_bottom = wrap_plots(
+    as_ggplot(text_grob('',size = 18)) + theme(plot.margin = margin(0,0,0,0, "cm"))
+    , full_bottom
+    , as_ggplot(text_grob('',size = 18)) + theme(plot.margin = margin(0,0,0,0, "cm"))
+    , nrow = 1
+    , widths = c(1.5,8,1.5)
+  )
+
+  #### Combine for full plot
+  grid_plot = wrap_plots(wrap_plots(as_ggplot(text_grob('Comparison between surveys',size = 18)) + theme(plot.margin = margin(0,0.25,0,0, "cm"))
+                                    , full_top, ncol = 1, heights = c(0.75,9))
+                         , full_bottom
+                         , ncol = 1
+                         , heights = c(10,11)
+  )
+
+  return(grid_plot)
 }
