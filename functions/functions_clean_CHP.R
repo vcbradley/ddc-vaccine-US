@@ -61,8 +61,6 @@ prepCHPmicrodata <- function(chp_waves = 22:29,
       unsure = as.numeric(RECVDVACC != 1 & (GETVACRV == 3 | GETVACC < 0 | GETVACRV < 0)) # refusals and explicit unsures coded as unsure
     ) %>%
     mutate_at(vars(vaccinated:unsure), ~ replace(., is.na(.), 0))
-  # mutate(rowsum = vaccinated + willing_def + willing_prob + hesitant_prob + hesitant_def + unsure) %>%  # check that all respondents have a code
-  # group_by(rowsum) %>% count()
 
   # write cleaned microdata to file
   readr::write_csv(hpdata,
@@ -189,8 +187,8 @@ prepCHPtables <- function(chp_waves = 22:29,
     }
   }
   # bind together
-  all_tables <- rbindlist(all_tables_raw, fill = T)
-  all_tables_se <- rbindlist(all_tables_se_raw, fill = T)
+  all_tables <- rbindlist(all_tables_raw, fill = TRUE)
+  all_tables_se <- rbindlist(all_tables_se_raw, fill = TRUE)
 
   setnames(all_tables, old = names(all_tables), new = getHPTabColnames(names(all_tables), which = "est"))
   setnames(all_tables_se, old = names(all_tables_se), new = getHPTabColnames(names(all_tables_se), which = "SE"))
@@ -214,18 +212,18 @@ prepCHPtables <- function(chp_waves = 22:29,
 
   # calc percentages and clean
   all_tables_full <- all_tables_full %>% mutate(
-    wave = as.numeric(wave)
+    wave = as.numeric(wave),
 
     # calc percentages
-    , pct_vaccinated = n_vaccinated / pop_total,
+    pct_vaccinated = n_vaccinated / pop_total,
     pct_willing_definitely = n_willing_definitely / pop_total,
     pct_willing_probably = n_willing_probably / pop_total,
     pct_hesitant_definitely = n_hesitant_definitely / pop_total,
     pct_hesitant_probably = n_hesitant_probably / pop_total,
-    pct_vaxunsure = n_vaxunsure / pop_total
+    pct_vaxunsure = n_vaxunsure / pop_total,
 
     # option not offered in earlier waves, so replace NAs with 0
-    , pct_vaxunsure = ifelse(is.na(pct_vaxunsure), 0, pct_vaxunsure),
+    pct_vaxunsure = ifelse(is.na(pct_vaxunsure), 0, pct_vaxunsure),
     n_vaxunsure_SE = ifelse(is.na(n_vaxunsure_SE), 0, n_vaxunsure_SE)
 
     # calc net willing / hesitant
@@ -277,10 +275,10 @@ prepCHPcombined <- function(chp_waves = 22:29, overwrite_chp = FALSE) {
       pct_vaxunsure = sum(unsure * PWEIGHT) / sum(PWEIGHT),
       pct_willing = pct_willing_definitely + pct_willing_probably,
       pct_hesitant = pct_hesitant_definitely + pct_hesitant_probably + pct_vaxunsure,
-      pct_haveorwillgetvax = pct_vaccinated + pct_willing
+      pct_haveorwillgetvax = pct_vaccinated + pct_willing,
 
       # calc standard errors
-      , pct_vaccinated_raw_se = sqrt(pct_vaccinated_raw * (1 - pct_vaccinated_raw) / n),
+      pct_vaccinated_raw_se = sqrt(pct_vaccinated_raw * (1 - pct_vaccinated_raw) / n),
       pct_vaccinated_se = sqrt(pct_vaccinated * (1 - pct_vaccinated) * deff / n),
       pct_hesitant_se = sqrt(pct_hesitant * (1 - pct_hesitant) * deff / n),
       pct_willing_se = sqrt(pct_willing * (1 - pct_willing) * deff / n),
@@ -340,9 +338,6 @@ prepCHPcombined <- function(chp_waves = 22:29, overwrite_chp = FALSE) {
     ),
     by = c("wave", "pop", "subgroup", "demo")
   )
-
-  ggplot(chp_comp, aes(x = pct_vaccinated_tab, y = pct_vaccinated_micro)) +
-    geom_point()
 
   chp_comp %>%
     mutate(
