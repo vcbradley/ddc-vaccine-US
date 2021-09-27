@@ -25,7 +25,7 @@ benchmark <- fread(file.path('data', 'final', glue('benchmark_{benchmark_date}.c
 
 ######### POLL DATA ###########
 # read in poll data
-all_polls_plt <- fread(file.path('data', 'final', 'all_polls_all_vars.csv')) %>%
+all_polls_plt <- fread(file.path('data', 'final', 'all_polls_all_vars.csv.gz')) %>%
   filter(pop == 'US', end_date <= max_date, end_date <= max(benchmark$date))
 
 all_polls_plt_noerror <- all_polls_plt %>% filter(pct_error == 0)

@@ -19,7 +19,7 @@ benchmark <- fread(file.path('data', 'final', glue('benchmark_{benchmark_date}.c
 
 ######### POLL DATA ###########
 # read in poll data
-all_polls_plt <- fread(file.path('data', 'final', 'all_polls_all_vars.csv')) %>%
+all_polls_plt <- fread(file.path('data', 'final', 'all_polls_all_vars.csv.gz')) %>%
   filter(pct_error == 0, pop != 'US') %>%
   # choose the polls we want to use -- lastest overlapping interval
   filter((mode == 'facebook' & end_date == '2021-03-27')
