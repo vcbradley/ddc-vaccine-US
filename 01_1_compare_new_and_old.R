@@ -1,6 +1,6 @@
 ### compare all_polls from new and old project repos
 
-new = fread(file = file.path('data', 'final', 'all_polls_all_vars.csv'))
+new = fread(file = file.path('data', 'final', 'all_polls_all_vars.csv.gz'))
 old = fread(file  = '~/github/ddi-covid-studies/all_polls_with_ddc_benchunc.csv')
 
 
