@@ -22,12 +22,7 @@ pkg.list <- c(
   "kableExtra",
   "lubridate",
   "patchwork",
-  "ggrepel",
-  # misc (do we need this?)
-  "survey",
-  "R.utils",
-  "rjson",
-  "imputeTS"
+  "ggrepel"
 )
 
 
