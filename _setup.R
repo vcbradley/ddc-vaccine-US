@@ -1,13 +1,31 @@
 ## set up
 pkg.list <- c(
-  "data.table", "ggplot2", "gridExtra",
-  "ggpubr", "grid", "scales",
-  "knitr", "kableExtra",
-  "curl", "dplyr", "R.utils",
-  "tidyr", "lemon", "readxl",
-  "survey", "lubridate",
-  "glue", "patchwork", "ggrepel",
-  "rjson", "imputeTS"
+  # general data wrangling
+  "dplyr",
+  "tidyr",
+  "glue",
+  "fs",
+  # data reading
+  "curl",
+  "readxl",
+  "data.table",
+  # graphs and tables
+  "ggplot2",
+  "gridExtra",
+  "ggpubr",
+  "grid",
+  "scales",
+  "lemon",
+  "knitr",
+  "kableExtra",
+  "lubridate",
+  "patchwork",
+  "ggrepel",
+  # misc (do we need this?)
+  "survey",
+  "R.utils",
+  "rjson",
+  "imputeTS"
 )
 
 
