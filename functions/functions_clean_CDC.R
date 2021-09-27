@@ -204,26 +204,38 @@ getBenchmark = function(benchmark_date
 
   #### OWID
   # clean and write out OWID data
-  owid <- getOWIDdata(download_date = benchmark_date, download = download_owid, statepop_download = statepop_download, statepop_filepath = statepop_filepath)
-  write.csv(owid
-            , file = file.path('data', 'raw', 'OWID', paste0('owid_cleaned_', benchmark_date, '.csv'))
-            , row.names = F)
+  # only if the data exists for that date
+  owid_raw_path = file.path('data', 'raw', 'OWID', paste0('owid_raw_', benchmark_date, '.csv'))
 
-  # check OWID interpolation
-  ggplot(owid, aes(x = date, y= pct_pop_vaccinated, group = state, color = n_pop_vaccinated_imputedflag))+
-    geom_line() +
-    ggtitle("Linear interpolation of missing state benchmark data") +
-    facet_wrap(~as.numeric(state == 'US'), scales = 'free') +
-    theme_bw()
-  ggsave(filename = file.path('data','raw', 'OWID', paste0('plot_owid_interp_check_', benchmark_date, '.png'))
-         , width = 8, height = 4, units = 'in', device = 'png')
+  if(file.exists(owid_raw_path) | is.null(benchmark_date)){
+    owid <- getOWIDdata(download_date = benchmark_date
+                        , download = download_owid
+                        , statepop_download = statepop_download
+                        , statepop_filepath = statepop_filepath
+                        )
 
+    write.csv(owid
+              , file = file.path('data', 'raw', 'OWID', paste0('owid_cleaned_', benchmark_date, '.csv'))
+              , row.names = F)
 
+    # check OWID interpolation
+    ggplot(owid, aes(x = date, y= pct_pop_vaccinated, group = state, color = n_pop_vaccinated_imputedflag))+
+      geom_line() +
+      ggtitle("Linear interpolation of missing state benchmark data") +
+      facet_wrap(~as.numeric(state == 'US'), scales = 'free') +
+      theme_bw()
+    ggsave(filename = file.path('data','raw', 'OWID', paste0('plot_owid_interp_check_', benchmark_date, '.png'))
+           , width = 8, height = 4, units = 'in', device = 'png')
 
-  #### combine CDC and OWID data
-  benchmark = bind_rows(cdc %>% mutate(source = 'CDC_historical')
-                        , owid %>% mutate(source = 'OWID')
-  )
+    #### combine CDC and OWID data
+
+    benchmark = bind_rows(cdc %>% mutate(source = 'CDC_historical')
+                          , owid %>% mutate(source = 'OWID')
+    )
+  }else{
+    benchmark = cdc %>% mutate(source = 'CDC_historical')
+  }
+
 
   benchmark <- benchmark %>% mutate(day_of_vax_program = difftime(date, min(date) - 1, units = 'days')
                        , day_of_vax_program = as.numeric(day_of_vax_program)
