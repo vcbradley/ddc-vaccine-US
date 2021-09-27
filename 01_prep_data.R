@@ -143,6 +143,4 @@ all_polls_out <- all_polls_witherror %>%
   )
 
 
-write.csv(all_polls_out,
-          file = path("data", "final", "all_polls_all_vars.csv"),
-          row.names = FALSE)
+write_csv(all_polls_out, path("data", "final", "all_polls_all_vars.csv.gz"))
