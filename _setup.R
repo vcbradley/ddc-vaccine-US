@@ -41,7 +41,7 @@ for (p in pkg.list) {
 
 # set color scales
 scale_values <- c(
-  "CDC (benchmark)" = "gray", #' #946eb7' #purple
+  "CDC (benchmark)" = "gray",
   "Delphi-Facebook" = "#4891dc", # blue
   "Census Household Pulse" = "#69913b", # green
   "Axios-Ipsos" = "#cf7a30" # orange
