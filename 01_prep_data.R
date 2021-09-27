@@ -55,22 +55,31 @@ poll_vars <- c(
   "MoE", "deff", "source"
 )
 
-chpdata <- fread(path("data", "final", glue("chp_cleaned_waves{min(chp_waves)}to{max(chp_waves)}.csv")), select = poll_vars) %>%
-  mutate(study_name = "Census Household Pulse")
-fbdata <- fread(path("data", "final", "fb_cleaned.csv"), select = poll_vars) %>%
-  mutate(study_name = "Delphi-Facebook")
-ipsos <- fread(path("data", "final", "axios_ipsos_cleaned.csv"), select = poll_vars) %>%
-  mutate(study_name = "Axios-Ipsos")
+chp_paths <- path("data", "final", glue("chp_cleaned_waves{min(chp_waves)}to{max(chp_waves)}.csv"))
+fb_paths <- path("data", "final", "fb_cleaned.csv")
+ip_paths <- path("data", "final", "axios_ipsos_cleaned.csv")
+
+chpdata <- map_dfr(chp_paths, ~ fread(.x, select = poll_vars))
+fbdata  <- map_dfr(fb_paths, ~ fread(.x, select = poll_vars))
+ipsos   <- map_dfr(ip_paths, ~ fread(.x, select = poll_vars))
 
 
 # stack polls
-all_polls <- bind_rows(fbdata, chpdata, ipsos)
+all_polls_fmt <- list(`Delphi-Facebook` = fbdata,
+                  `Census Household Pulse` = chpdata,
+                  `Axios-Ipsos` = ipsos) %>%
+  bind_rows(.id = "study_name") %>%
+  rename(source_poll = source)
 
+bench_fmt <-  benchmark %>%
+  # drop national-level OWID data
+  filter(!(state == "US" & source == "OWID")) %>%
+  select(-n_pop_vaccinated_imputedflag)
 
 # merge in benchmark
-all_polls <- left_join(all_polls %>% rename(source_poll = source),
-  benchmark %>% filter(!(state == "US" & source == "OWID")) %>% # drop national-level OWID data
-    select(-n_pop_vaccinated_imputedflag),
+all_polls <- left_join(
+  all_polls_fmt,
+  bench_fmt,
   by = c("end_date" = "date", "pop" = "state")
 )
 
@@ -84,7 +93,7 @@ all_polls_witherror <- addBenchmarkError(all_polls,
 
 
 ######### CALCULATE DDC #########
-all_polls_witherror <- all_polls_witherror %>%
+all_polls_out <- all_polls_witherror %>%
   mutate(
     # calculate pieces we need for ddc
     f = n / pop_total,
@@ -116,17 +125,17 @@ all_polls_witherror <- all_polls_witherror %>%
 
     # calculate classic effective sample size from weighting
     n_eff = n / deff,
-    f_eff = n_eff / pop_total
+    f_eff = n_eff / pop_total,
 
     # calculate drop out odds, weighted and unweighted
     DO = (pop_total - n) / n,
     DO_sqrt = sqrt(DO),
     DO_weighted = (pop_total - n_w) / n_w,
-    DO_weighted_sqrt = sqrt(DO)
+    DO_weighted_sqrt = sqrt(DO),
 
     # calculate bias-adjusted effective sample size
     n_eff_star = (sd_G / error)^2,
-    n_eff_star_cap = ifelse(n_eff_star > n, n_eff, n_eff_star)
+    n_eff_star_cap = ifelse(n_eff_star > n, n_eff, n_eff_star),
 
     # calculate percent reduction in effective sample size
     pct_reduction_n_eff = 1 - (n_eff_star / n_eff),
@@ -134,4 +143,6 @@ all_polls_witherror <- all_polls_witherror %>%
   )
 
 
-write.csv(all_polls_witherror, file = file.path("data", "final", "all_polls_all_vars.csv"), row.names = F)
+write.csv(all_polls_out,
+          file = path("data", "final", "all_polls_all_vars.csv"),
+          row.names = FALSE)
