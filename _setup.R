@@ -4,7 +4,9 @@ pkg.list <- c(
   "dplyr",
   "tidyr",
   "glue",
+  "purrr",
   "fs",
+  "readr",
   # data reading
   "curl",
   "readxl",
