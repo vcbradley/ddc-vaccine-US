@@ -1,14 +1,17 @@
 source('_setup.R')
-library(readr)
-
+source('functions/functions_plots.R')
 
 
 ######### BENCHMARK DATA ###########
+
+# which version of the benchmark to use
+benchmark_date = '2021-05-26'
+
 # read in benchmark data
 benchmark <- fread(file.path('data', 'final', glue('benchmark_{benchmark_date}.csv'))) %>%
   filter(state != 'US', !is.na(pct_pop_vaccinated)) %>%
   group_by(date) %>%
-  mutate(rank = frank(-pct_pop_vaccinated))
+  mutate(pop_rank_vaccinated = frank(-pct_pop_vaccinated))
 
 # ggplot(benchmark %>% filter(date >= '2021-03-22' & date < '2021-04-01')) +
 #   geom_line(aes(x = as.Date(date), y = rank, color = state)) +
@@ -16,6 +19,8 @@ benchmark <- fread(file.path('data', 'final', glue('benchmark_{benchmark_date}.c
 #            y = benchmark %>% filter(date == '2021-03-22') %>% pull(rank),
 #            label =  benchmark %>% filter(date == '2021-03-22') %>% pull(state)) +
 #   guides(color = FALSE)
+
+
 
 ######### POLL DATA ###########
 # read in poll data
@@ -38,14 +43,14 @@ all_polls_plt <- all_polls_plt %>%
             , benchmark %>%
               # for benchmark, use 3/27 (FB wave end date + 5 days of lag)
               filter(date == as.Date('2021-03-27') + 5)  %>%
-              select(pop = state, pct_vaccinated_pop = pct_pop_vaccinated, pop_rank = rank)
-            , by = c('pop')) %>%
+              select(pop = state, pct_vaccinated_pop = pct_pop_vaccinated, pop_rank_vaccinated)
+            , by = c('pop'))
+
+all_polls_plt <- all_polls_plt %>%
   mutate(pop_fac = factor(pop
-                          , levels = all_polls_plt %>% arrange(pop_rank, decreasing = T) %>% pull(pop)
+                          , levels = all_polls_plt %>% arrange(pop_rank_vaccinated, decreasing = T) %>% pull(pop)
                           )
          )
-
-
 
 
 
@@ -59,9 +64,9 @@ biggest_rank_diffs = list()
 for (m in outcomes) {
   all_polls_plt <- all_polls_plt %>%
     mutate('diff_{m}' := get(glue('pct_{m}_facebook')) - get(glue('pct_{m}_household_pulse'))) %>%
-    arrange(get(glue('pct_{m}_facebook')), decreasing = T) %>%
+    arrange(desc(get(glue('pct_{m}_facebook')))) %>%
     mutate('fb_rank_{m}' := 1:n()) %>%
-    arrange(get(glue('pct_{m}_household_pulse')), decreasing = T) %>%
+    arrange(desc(get(glue('pct_{m}_household_pulse')))) %>%
     mutate('hp_rank_{m}' := 1:n()) %>%
     mutate('rank_diff_{m}' := get(glue('fb_rank_{m}')) - get(glue('hp_rank_{m}')))
 
@@ -70,10 +75,23 @@ for (m in outcomes) {
 }
 
 
+ggplot(all_polls_plt) +
+  geom_point(aes(x= pct_vaccinated_facebook, y = fb_rank_vaccinated)) +
+  geom_point(aes(x= pct_vaccinated_household_pulse, y = hp_rank_vaccinated)) +
+  geom_point(aes(x= pct_vaccinated_pop, y = pop_rank_vaccinated))
 
-############# AMKE PLOTS ###########
-annotate_text = all_polls_plt[pop != 'US', .(n = round(sum(n))), mode]
 
+############# MAKE PLOTS ###########
 
+# which states to annotate in each panel
+show_states = c('MO', 'IN', 'MA')
 
+#labels
+labels = list(fb = 'Delphi-Facebook', hp = 'Census Household Pulse', pop = 'CDC')
+
+# make plot
+plot_comp = makeCompPlot(df = all_polls_plt, show_states = show_states, labels = labels)
+
+# save
+ggsave(plot_comp, filename = 'plots/fig_which_to_trust.png', height = 12, width = 10)
 
