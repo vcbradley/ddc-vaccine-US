@@ -4,8 +4,10 @@ addBenchmarkError = function(data, error_levels = c(-0.1,-0.05, 0.05, 0.1), incl
     error_levels = c(0, error_levels)
   }
 
-  data <- rbindlist(lapply(c(0, error_levels), function(e){
-    data %>% mutate(pct_error = e, pct_error_lab = ifelse(e == 0, 'no error', paste0(ifelse(e < 0, 'underreports by ', 'overreports by '),e*100, '%')))
+  data <- rbindlist(lapply(error_levels, function(e){
+    data %>% mutate(pct_error = e
+                    , pct_error_lab = ifelse(e == 0, 'no error', paste0(ifelse(e < 0, 'less', 'plus'), abs(e) * 100, 'pct'))
+                    )
   }))
 
   data %>%
