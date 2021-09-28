@@ -6,17 +6,17 @@ source('functions/functions_plots.R')
 benchmark_version = '2021-05-26'
 
 # survey dates
-which_waves <- list(facebook = '2021-03-27'
-                    , household_pulse = '2021-03-29'
-                    , ipsos_axios = '2021-03-22'
-                    , benchmark = '2021-04-01'   # end of max wave plus 5 days for reporting lag
-)
-
-# which_waves <- list(facebook = '2021-05-08'
-#                     , household_pulse = '2021-05-10'
-#                     , ipsos_axios = '2021-05-10'
-#                     , benchmark = '2021-05-15'   # end of max wave plus 5 days for reporting lag
+# which_waves <- list(facebook = '2021-03-27'
+#                     , household_pulse = '2021-03-29'
+#                     , ipsos_axios = '2021-03-22'
+#                     , benchmark = '2021-04-01'   # end of max wave plus 5 days for reporting lag
 # )
+
+which_waves <- list(facebook = '2021-05-08'
+                    , household_pulse = '2021-05-10'
+                    , ipsos_axios = '2021-05-10'
+                    , benchmark = '2021-05-15'   # end of max wave plus 5 days for reporting lag
+)
 
 
 ######### BENCHMARK DATA ###########
@@ -100,6 +100,9 @@ labels = list(fb = 'Delphi-Facebook', hp = 'Census Household Pulse', pop = 'CDC'
 # make plot
 plot_comp = makeCompPlot(df = all_polls_plt, show_states = show_states, labels = labels)
 
+fig.lab = glue("Waves used: CDC {format(as.Date(which_waves$benchmark), format =  '%m/%d/%Y')}, Facebook-Delphi {format(as.Date(which_waves$facebook), format =  '%m/%d/%Y')}, Census Household Pulse {format(as.Date(which_waves$household_pulse), format =  '%m/%d/%Y')}, Axios-Ipsos {format(as.Date(which_waves$ipsos_axios), format = '%m/%d/%Y')}")
+plot_comp_annotated <- plot_comp + plot_annotation(caption = fig.lab)
+
 # save
-ggsave(plot_comp, filename = glue('plots/fig_which_to_trust_{as.Date(which_waves$benchmark) - 5}.png'), height = 12, width = 10)
+ggsave(plot_comp_annotated, filename = glue('plots/fig_which_to_trust_{as.Date(which_waves$benchmark) - 5}.png'), height = 12, width = 10)
 
