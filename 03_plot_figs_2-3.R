@@ -196,44 +196,8 @@ fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
 fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] + scale_y_continuous(expand = c(0, 0))
 
 
-## save plots
-for (p in names(fig3_pl)) {
-  ggsave(fig3_pl[[p]],
-    filename = file.path("plots", glue("fig3_{p}.png")),
-    device = "png",
-    width = plot_width - 2,
-    height = plot_height - 1,
-    units = "in"
-  )
-}
-
-
-
-
-
-
 
 ######### MAKE PANELS #########
-
-## 4panel
-fig3_4panel <- ggarrange(fig3_pl[["panelA_error"]],
-  fig3_pl[["panelB_sdG"]],
-  fig3_pl[["panelC_DO"]],
-  fig3_pl[["panelD_ddc"]],
-  common.legend = TRUE,
-  legend = "bottom",
-  labels = c("A", "B", "C", "D"),
-  align = "hv"
-)
-ggsave(fig3_4panel,
-  filename = file.path("plots", "fig3_4panel.png"),
-  device = "png",
-  width = plot_width,
-  height = plot_height,
-  units = "in"
-)
-
-
 ## 6 panel
 fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
   fig3_pl[["panelB_sdG"]],
