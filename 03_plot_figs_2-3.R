@@ -80,7 +80,7 @@ plot_fig2 <- ggplot() +
     xlim = as.Date(c("2021-01-01", "2021-08-18")),
     direction = "x",
     nudge_x = 1,
-    parse = T,
+    parse = TRUE,
     aes(
       x = x,
       y = y,
@@ -111,7 +111,7 @@ fig3_plotlist[["panelA_error"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "error",
   ylab = "Error",
-  include_legend = T,
+  include_legend = TRUE,
   title = "Estimate error",
   xlim_val = xlims
 )
@@ -133,7 +133,7 @@ fig3_plotlist[["panelC_f"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "f",
   ylab = "% of pop sampled",
-  include_legend = T,
+  include_legend = TRUE,
   title = "Proportion of population sampled (n/N)",
   use_ribbons = NULL,
   xlim_val = xlims
@@ -145,7 +145,7 @@ fig3_plotlist[["panelC_DO"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "DO_sqrt",
   ylab = "sqrt((N-n)/N)",
-  include_legend = T,
+  include_legend = TRUE,
   title = "Data quantity index",
   use_ribbons = NULL,
   xlim_val = xlims
@@ -156,7 +156,7 @@ fig3_plotlist[["panelD_ddc"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "ddc_weighted",
   ylab = "ddc",
-  include_legend = T,
+  include_legend = TRUE,
   title = "Data defect correlation (ddc)",
   xlim_val = xlims
 )
@@ -169,7 +169,7 @@ fig3_plotlist[["panelE_neff_fb"]] <- plot_with_errorbands(
   data = all_polls_plt_wide %>% filter(mode == "facebook"),
   outcome = "n_eff_star_cap",
   ylab = "effective sample size",
-  include_legend = F,
+  include_legend = FALSE,
   title = "Effective sample size - Facebook",
   xlim_val = xlims
 )
@@ -181,7 +181,7 @@ fig3_plotlist[["panelF_neff_chp"]] <- plot_with_errorbands(
   outcome = "n_eff_star_cap",
   ylab = "effective sample size",
   xlim_val = xlims,
-  include_legend = F,
+  include_legend = FALSE,
   title = "Effective sample size - Census"
 )
 fig3_plotlist[["panelF_neff_chp"]] <- fig3_plotlist[["panelF_neff_chp"]] + scale_y_continuous(expand = c(0, 0))
