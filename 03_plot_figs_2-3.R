@@ -179,7 +179,7 @@ fig3_pl[["panelE_neff_fb"]] <- plot_with_errorbands(
   outcome = "n_eff_star_cap",
   ylab = "Effective sample size",
   include_legend = FALSE,
-  title = "Effective sample size - Facebook",
+  title = "Effective sample size",
   xlim_val = xlims
 )
 fig3_pl[["panelE_neff_fb"]] <- fig3_pl[["panelE_neff_fb"]] + scale_y_continuous(expand = c(0, 0))
@@ -191,7 +191,7 @@ fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
   ylab = "Effective sample size",
   xlim_val = xlims,
   include_legend = FALSE,
-  title = "Effective sample size - Census"
+  title = "Effective sample size"
 )
 fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] + scale_y_continuous(expand = c(0, 0))
 
@@ -214,7 +214,7 @@ fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
 ggsave(fig3_6panel,
   filename = file.path("plots", "fig3_6panel.png"),
   device = "png",
-  width = 12,
-  height = 7,
+  width = 11,
+  height = 5,
   units = "in"
 )
