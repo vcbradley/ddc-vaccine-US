@@ -10,8 +10,8 @@ max_date = '2021-05-19'
 # which version of the benchmark to use
 benchmark_date = '2021-05-26'
 
-plot_width = 9
-plot_height = 6
+plot_width = 6.5
+plot_height = 4
 
 
 ######### BENCHMARK DATA ###########
@@ -47,21 +47,23 @@ all_polls_plt_wide <- all_polls_plt %>%
 ######### PLOT FIG 2 - ESTIMATES OVER TIME ###########
 plt_annotate = data.table(study_name = c('CDC (benchmark)', 'Delphi-Facebook', 'Axios-Ipsos', 'Census Household Pulse')
                           , x = c(as.Date('2021-05-13'), as.Date('2021-05-15'), as.Date('2021-05-12'), as.Date('2021-05-14'))
-                          , y = c(0.58, 0.79, 0.645, 0.73)
+                          , y = c(0.58, 0.8, 0.645, 0.73)
                           , n = c('', '250,000', '1000', '75,000')
+                          , size = c(3,3,3,2.5)
 )
 
 plot_fig2 = ggplot() +
   geom_line(data = benchmark, aes(x = as.Date(date), y = pct_pop_vaccinated, color = 'CDC (benchmark)')) +
   theme_pubr() +
-  theme(legend.position = 'none', plot.margin = unit(c(1,12,1,1), "lines")) +
+  theme(legend.position = 'bottom', plot.margin = unit(c(1,8.5,1,1), "lines"), legend.text=element_text(size=8)) +
   lemon::geom_pointline(data = all_polls_plt_noerror, aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name)
                         , position = position_dodge(0.008 * 365)) +
   geom_pointrange(data = all_polls_plt_noerror
                   , aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5, color = study_name)
                   , position = position_dodge(0.008 * 365)
-                  , fatten = 2) +
-  labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = 'Study') +
+                  , fatten = 2
+                  , show.legend = FALSE) +
+  labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = scales::percent) +
   coord_cartesian(clip = "off") +
@@ -73,14 +75,18 @@ plot_fig2 = ggplot() +
                   , parse = T
                   , aes(x = x
                         , y = y
-                        , label = ifelse(n !='', paste0("'",study_name, " '(","n%~~%'", n, "')"), study_name), color = study_name)) +
+                        , label = ifelse(n !='', paste0("'",study_name, " '(","n%~~%'", n, "')"), study_name), color = study_name
+                        )
+                  , size = plt_annotate$size
+                  , show.legend = FALSE
+                  ) +
   annotate('text', x = as.Date('2021-01-20'), y = 0.52, label = '50% with one dose')
 
 ggsave(plot_fig2
        , filename = file.path('plots', 'fig2.png')
        , device = 'png'
        , width = plot_width
-       , height = plot_height - 1
+       , height = plot_height
        , units = 'in')
 
 
