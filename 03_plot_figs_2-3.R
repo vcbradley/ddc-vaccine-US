@@ -85,7 +85,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     size = 3,
     show.legend = FALSE
   ) +
-  theme(legend.position = 'bottom'
+  theme(legend.position = 'none'
         , plot.margin = unit(c(1,9,1,1), "lines")
         , legend.text=element_text(size=8)
         , text = element_text(size=10)
