@@ -113,10 +113,10 @@ ggsave(plot_fig2,
 ################# MAKE FIG 3 ################
 xlims <- c(as.Date("2021-01-01"), as.Date("2021-05-11"))
 
-fig3_plotlist <- list()
+fig3_pl <- list()
 
 ## panel A - error
-fig3_plotlist[["panelA_error"]] <- plot_with_errorbands(
+fig3_pl[["panelA_error"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "error",
   ylab = "Error",
@@ -124,11 +124,11 @@ fig3_plotlist[["panelA_error"]] <- plot_with_errorbands(
   title = "Estimate error",
   xlim_val = xlims
 )
-fig3_plotlist[["panelA_error"]] <- fig3_plotlist[["panelA_error"]] + geom_hline(yintercept = 0, lty = 2)
+fig3_pl[["panelA_error"]] <- fig3_pl[["panelA_error"]] + geom_hline(yintercept = 0, lty = 2)
 
 
 ## panel B - sd_G
-fig3_plotlist[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
+fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   lemon::geom_pointline(aes(color = study_name)) +
   theme_pubr() +
   labs(x = NULL, y = expression(sigma[Y]), color = "Study", title = expression("Problem difficulty")) +
@@ -138,7 +138,7 @@ fig3_plotlist[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd
 
 
 ## panel C - f, sampling fraction
-fig3_plotlist[["panelC_f"]] <- plot_with_errorbands(
+fig3_pl[["panelC_f"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "f",
   ylab = "% of pop sampled",
@@ -147,10 +147,10 @@ fig3_plotlist[["panelC_f"]] <- plot_with_errorbands(
   use_ribbons = NULL,
   xlim_val = xlims
 )
-fig3_plotlist[["panelC_f"]] <- fig3_plotlist[["panelC_f"]] + scale_y_continuous(labels = scales::percent)
+fig3_pl[["panelC_f"]] <- fig3_pl[["panelC_f"]] + scale_y_continuous(labels = scales::percent)
 
 ## panel D - dropout odds
-fig3_plotlist[["panelC_DO"]] <- plot_with_errorbands(
+fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "DO_sqrt",
   include_legend = TRUE,
@@ -161,7 +161,7 @@ fig3_plotlist[["panelC_DO"]] <- plot_with_errorbands(
   labs(y = expression(sqrt((N-n)/N)))
 
 ## panel D - ddc
-fig3_plotlist[["panelD_ddc"]] <- plot_with_errorbands(
+fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "ddc_weighted",
   ylab = "ddc",
@@ -169,12 +169,12 @@ fig3_plotlist[["panelD_ddc"]] <- plot_with_errorbands(
   title = "Data defect correlation (ddc)",
   xlim_val = xlims
 )
-fig3_plotlist[["panelD_ddc"]] <- fig3_plotlist[["panelD_ddc"]] + geom_hline(yintercept = 0, lty = 2)
+fig3_pl[["panelD_ddc"]] <- fig3_pl[["panelD_ddc"]] + geom_hline(yintercept = 0, lty = 2)
 
 
 
 ## panel E - effective sample size, Facebook
-fig3_plotlist[["panelE_neff_fb"]] <- plot_with_errorbands(
+fig3_pl[["panelE_neff_fb"]] <- plot_with_errorbands(
   data = all_polls_plt_wide %>% filter(mode == "facebook"),
   outcome = "n_eff_star_cap",
   ylab = "Effective sample size",
@@ -182,10 +182,10 @@ fig3_plotlist[["panelE_neff_fb"]] <- plot_with_errorbands(
   title = "Effective sample size - Facebook",
   xlim_val = xlims
 )
-fig3_plotlist[["panelE_neff_fb"]] <- fig3_plotlist[["panelE_neff_fb"]] + scale_y_continuous(expand = c(0, 0))
+fig3_pl[["panelE_neff_fb"]] <- fig3_pl[["panelE_neff_fb"]] + scale_y_continuous(expand = c(0, 0))
 
 ## panel F - effective sample size, Census Household Pulse
-fig3_plotlist[["panelF_neff_chp"]] <- plot_with_errorbands(
+fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
   data = all_polls_plt_wide %>% filter(mode == "household_pulse"),
   outcome = "n_eff_star_cap",
   ylab = "Effective sample size",
@@ -193,12 +193,12 @@ fig3_plotlist[["panelF_neff_chp"]] <- plot_with_errorbands(
   include_legend = FALSE,
   title = "Effective sample size - Census"
 )
-fig3_plotlist[["panelF_neff_chp"]] <- fig3_plotlist[["panelF_neff_chp"]] + scale_y_continuous(expand = c(0, 0))
+fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] + scale_y_continuous(expand = c(0, 0))
 
 
 ## save plots
-for (p in names(fig3_plotlist)) {
-  ggsave(fig3_plotlist[[p]],
+for (p in names(fig3_pl)) {
+  ggsave(fig3_pl[[p]],
     filename = file.path("plots", glue("fig3_{p}.png")),
     device = "png",
     width = plot_width - 2,
@@ -216,10 +216,10 @@ for (p in names(fig3_plotlist)) {
 ######### MAKE PANELS #########
 
 ## 4panel
-fig3_4panel <- ggarrange(fig3_plotlist[["panelA_error"]],
-  fig3_plotlist[["panelB_sdG"]],
-  fig3_plotlist[["panelC_DO"]],
-  fig3_plotlist[["panelD_ddc"]],
+fig3_4panel <- ggarrange(fig3_pl[["panelA_error"]],
+  fig3_pl[["panelB_sdG"]],
+  fig3_pl[["panelC_DO"]],
+  fig3_pl[["panelD_ddc"]],
   common.legend = TRUE,
   legend = "bottom",
   labels = c("A", "B", "C", "D"),
@@ -235,12 +235,12 @@ ggsave(fig3_4panel,
 
 
 ## 6 panel
-fig3_6panel <- ggarrange(fig3_plotlist[["panelA_error"]],
-  fig3_plotlist[["panelB_sdG"]],
-  fig3_plotlist[["panelC_DO"]],
-  fig3_plotlist[["panelD_ddc"]],
-  fig3_plotlist[["panelE_neff_fb"]],
-  fig3_plotlist[["panelF_neff_chp"]],
+fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
+  fig3_pl[["panelB_sdG"]],
+  fig3_pl[["panelC_DO"]],
+  fig3_pl[["panelD_ddc"]],
+  fig3_pl[["panelE_neff_fb"]],
+  fig3_pl[["panelF_neff_chp"]],
   common.legend = TRUE,
   legend = "bottom",
   labels = c("A", "B", "C", "D", "E", "F"),
