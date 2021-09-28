@@ -49,51 +49,60 @@ all_polls_plt_wide <- all_polls_plt %>%
 
 
 ######### PLOT FIG 2 - ESTIMATES OVER TIME ###########
-plt_annotate <- data.table(
+plt_annotate <- tibble(
   study_name = c("CDC (benchmark)", "Delphi-Facebook", "Axios-Ipsos", "Census Household Pulse"),
-  x = c(as.Date("2021-05-13"), as.Date("2021-05-15"), as.Date("2021-05-12"), as.Date("2021-05-14")),
-  y = c(0.58, 0.79, 0.645, 0.73),
+  x = c(as.Date("2021-05-13"), as.Date("2021-05-17"), as.Date("2021-05-15"), as.Date("2021-05-12")),
+  y = c(0.58, 0.78, 0.645, 0.72),
   n = c("", "250,000", "1000", "75,000")
-)
+) %>%
+  mutate(plt_lbl = glue("'{study_name}' (n%~~%'{n}')"),
+         plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "CDC (benchmark)"))
 
-plot_fig2 <- ggplot() +
-  geom_line(data = benchmark, aes(x = as.Date(date), y = pct_pop_vaccinated, color = "CDC (benchmark)")) +
-  theme_pubr() +
-  theme(legend.position = "none", plot.margin = unit(c(1, 12, 1, 1), "lines")) +
-  lemon::geom_pointline(
-    data = all_polls_plt_noerror, aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name),
+plot_fig2 <- ggplot(all_polls_plt_noerror) +
+  geom_line(
+    data = benchmark,
+    aes(x = as.Date(date), y = pct_pop_vaccinated, color = "CDC (benchmark)")) +
+  geom_pointline(
+    aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name),
+    size = 0.5,
     position = position_dodge(0.008 * 365)
   ) +
   geom_pointrange(
-    data = all_polls_plt_noerror,
     aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5, color = study_name),
     position = position_dodge(0.008 * 365),
     fatten = 2
   ) +
-  labs(x = NULL, y = "% Vaccinated (at least 1 dose)", color = "Study") +
-  scale_color_manual(values = scale_values) +
-  scale_y_continuous(labels = scales::percent) +
-  coord_cartesian(clip = "off") +
-  geom_hline(yintercept = 0.5, lty = 2) +
-  geom_text_repel(
+  geom_text(
     data = plt_annotate,
-    xlim = as.Date(c("2021-01-01", "2021-08-18")),
-    direction = "x",
-    nudge_x = 1,
+    aes(x = as.Date(x),
+        y = y, label = plt_lbl, color = study_name),
+    # direction = "x",
+    # nudge_x = 1,
     parse = TRUE,
-    aes(
-      x = x,
-      y = y,
-      label = ifelse(n != "", paste0("'", study_name, " '(", "n%~~%'", n, "')"), study_name), color = study_name
-    )
+    inherit.aes = FALSE,
+    hjust = 0,
+    # min.segment.length = 10,
+    size = 3
   ) +
-  annotate("text", x = as.Date("2021-01-20"), y = 0.52, label = "50% with one dose")
+  theme_pubr() +
+  labs(x = NULL,
+       y = "% Vaccinated (at least 1 dose)",
+       color = "Study") +
+  scale_color_manual(values = scale_values) +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     breaks = seq(0, 0.8, 0.1),
+                     expand = expansion(mult = c(0, 0.01))) +
+  scale_x_date(date_labels = "%b\n%Y",
+               breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
+               limits = c(as.Date("2021-01-01"), as.Date("2021-07-15"))) +
+  coord_cartesian(clip = "off") +
+  guides(color = FALSE)
+plot_fig2
 
 ggsave(plot_fig2,
   filename = file.path("plots", "fig2.png"),
-  device = "png",
-  width = plot_width,
-  height = plot_height - 1,
+  width = 6,
+  height = 3,
   units = "in"
 )
 
