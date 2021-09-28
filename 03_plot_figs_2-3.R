@@ -153,12 +153,12 @@ fig3_plotlist[["panelC_f"]] <- fig3_plotlist[["panelC_f"]] + scale_y_continuous(
 fig3_plotlist[["panelC_DO"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "DO_sqrt",
-  ylab = "sqrt((N-n)/N)",
   include_legend = TRUE,
   title = "Data quantity index",
   use_ribbons = NULL,
   xlim_val = xlims
-)
+) +
+  labs(y = expression(sqrt((N-n)/N)))
 
 ## panel D - ddc
 fig3_plotlist[["panelD_ddc"]] <- plot_with_errorbands(
@@ -177,7 +177,7 @@ fig3_plotlist[["panelD_ddc"]] <- fig3_plotlist[["panelD_ddc"]] + geom_hline(yint
 fig3_plotlist[["panelE_neff_fb"]] <- plot_with_errorbands(
   data = all_polls_plt_wide %>% filter(mode == "facebook"),
   outcome = "n_eff_star_cap",
-  ylab = "effective sample size",
+  ylab = "Effective sample size",
   include_legend = FALSE,
   title = "Effective sample size - Facebook",
   xlim_val = xlims
@@ -188,7 +188,7 @@ fig3_plotlist[["panelE_neff_fb"]] <- fig3_plotlist[["panelE_neff_fb"]] + scale_y
 fig3_plotlist[["panelF_neff_chp"]] <- plot_with_errorbands(
   data = all_polls_plt_wide %>% filter(mode == "household_pulse"),
   outcome = "n_eff_star_cap",
-  ylab = "effective sample size",
+  ylab = "Effective sample size",
   xlim_val = xlims,
   include_legend = FALSE,
   title = "Effective sample size - Census"
@@ -220,7 +220,7 @@ fig3_4panel <- ggarrange(fig3_plotlist[["panelA_error"]],
   fig3_plotlist[["panelB_sdG"]],
   fig3_plotlist[["panelC_DO"]],
   fig3_plotlist[["panelD_ddc"]],
-  common.legend = T,
+  common.legend = TRUE,
   legend = "bottom",
   labels = c("A", "B", "C", "D"),
   align = "hv"
@@ -241,7 +241,7 @@ fig3_6panel <- ggarrange(fig3_plotlist[["panelA_error"]],
   fig3_plotlist[["panelD_ddc"]],
   fig3_plotlist[["panelE_neff_fb"]],
   fig3_plotlist[["panelF_neff_chp"]],
-  common.legend = T,
+  common.legend = TRUE,
   legend = "bottom",
   labels = c("A", "B", "C", "D", "E", "F"),
   nrow = 2, ncol = 3,
