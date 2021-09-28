@@ -61,4 +61,4 @@ polls %>%
   labs(y = "% Vaccinated (at least 1 dose)",
        x = NULL)
 
-ggsave("figures/vax_onlinepolls.pdf", w = 7.5, h = 2.5)
+ggsave("plots/vax_onlinepolls.pdf", w = 7.5, h = 2.5)
