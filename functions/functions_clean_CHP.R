@@ -110,91 +110,38 @@ getHPTabColnames <- function(cname, which = "est") {
 
 
 
+# toplines
+# filename <- paste0("health5_week", w, ".xlsx")
+# paste0("https://www2.census.gov/programs-surveys/demo/tables/hhp/2021/wk", w, "/", filename)
+
+#' Prep CHP Tables
 prepCHPtables <- function(chp_waves = 22:29,
                           overwrite_chp = FALSE) {
   dest_dir <- file.path("data", "raw", "census-household-pulse", "tables")
 
-  ####### download census tables
-  for (w in chp_waves) {
-    # toplines
-    filename <- paste0("health5_week", w, ".xlsx")
-    file_path <- file.path(dest_dir, filename)
-    if (!file.exists(file_path) | overwrite_chp) {
-      hp_tab_url <- paste0("https://www2.census.gov/programs-surveys/demo/tables/hhp/2021/wk", w, "/", filename)
-      download.file(url = hp_tab_url, destfile = file_path)
-    }
-
-    # and standard errors
-    filename_se <- paste0("health5_se_week", w, ".xlsx")
-    file_path_se <- file.path(dest_dir, filename_se)
-    if (!file.exists(file_path_se) | overwrite_chp) {
-      hp_tab_url_se <- paste0("https://www2.census.gov/programs-surveys/demo/tables/hhp/2021/wk", w, "/", filename_se)
-      download.file(url = hp_tab_url_se, destfile = file_path_se)
-    }
-  }
 
 
   ######## extract vax data from correct sheets and stack
-  census_tables <- list.files(dest_dir, pattern = "health5_week")
-
   # for all tables
-  all_tables_raw <- list()
-  all_tables_se_raw <- list()
-  for (t in census_tables) {
 
-    # get wave name
-    wave_num <- as.numeric(gsub("health5_week|[.]xlsx", "", t))
+  census_tables <- glue("health5_week{chp_waves}.xlsx")
+  all_tbl <- map_dfr(census_tables, function(t) read_CHP_health_tbls(t))
 
-    # get sheetnames (each is a state / 'US')
-    sheets <- excel_sheets(path = file.path(dest_dir, t))
-    sheets <- sheets[!grepl("Metro_Area", sheets)]
-
-    # iterate through sheets
-    for (s in sheets) {
-      for (type in c("est", "se")) {
-        # read in data
-        if (type == "est") {
-          path <- file.path(dest_dir, t)
-        } else {
-          path <- file.path(dest_dir, gsub("health5", "health5_se", t))
-        }
-        tmp <- suppressMessages(read_excel(path, skip = 3, sheet = s, na = ""))
-
-        # get colnames -- same in each file, pull from estimates
-        colnames <- as.vector(apply(tmp, 2, function(c) {
-          c <- c[1:3] # make col names from first 3 rows
-          c <- c[!(is.na(c) | c == "NA")] # drop NAs
-          paste(c, collapse = "_")
-        }))
-
-        # setcolnames and drop extra rows
-        setnames(tmp, colnames)
-
-        # do remaining cleaning
-        tmp <- tmp %>%
-          slice(5:n()) %>%
-          mutate(demo = ifelse(is.na(Total), `Select characteristics`, NA), .before = `Select characteristics`) %>%
-          fill(demo) %>%
-          mutate(demo = ifelse(is.na(demo), "Total", demo), pop = s, wave = wave_num) %>%
-          filter(!(is.na(Total) | grepl("^[*]", `Select characteristics`)))
-
-        if (type == "est") {
-          all_tables_raw[[paste0(t, "_", s)]] <- tmp
-        } else {
-          all_tables_se_raw[[paste0(t, "_", s)]] <- tmp
-        }
-      }
-    }
-  }
   # bind together
-  all_tables <- rbindlist(all_tables_raw, fill = TRUE)
-  all_tables_se <- rbindlist(all_tables_se_raw, fill = TRUE)
+  all_tables <- filter(all_tbl, type == "est")
+  all_tables_se <- filter(all_tbl, type == "se")
 
-  setnames(all_tables, old = names(all_tables), new = getHPTabColnames(names(all_tables), which = "est"))
-  setnames(all_tables_se, old = names(all_tables_se), new = getHPTabColnames(names(all_tables_se), which = "SE"))
+  setnames(all_tables,
+           old = names(all_tables),
+           new = getHPTabColnames(names(all_tables), which = "est"))
+  setnames(all_tables_se,
+           old = names(all_tables_se),
+           new = getHPTabColnames(names(all_tables_se), which = "SE"))
 
+  browser()
   # merge
-  all_tables_full <- full_join(all_tables, all_tables_se, by = c("demo", "subgroup", "pop", "wave")) %>%
+  all_tables_full <- full_join(all_tables, all_tables_se,
+                               by = c("demo", "subgroup", "pop", "wave")) %>%
     relocate(pop, wave, .before = demo) %>%
     mutate_at(vars(pop_total:n_vaxunsure_SE), as.numeric)
 
@@ -232,7 +179,12 @@ prepCHPtables <- function(chp_waves = 22:29,
     pct_haveorwillgetvax = pct_willing + pct_vaccinated # unsure not uncluded in have or will get vax
   )
 
-  write.csv(all_tables_full, file = file.path("data", "raw", "census-household-pulse", "tables", paste0("chp_tables_cleaned_waves", min(chp_waves), "to", max(chp_waves), ".csv")))
+  write.csv(all_tables_full,
+            file = file.path("data", "raw", "census-household-pulse", "tables",
+                             paste0("chp_tables_cleaned_waves",
+                                    min(chp_waves), "to", max(chp_waves), ".csv")
+                             )
+            )
 
   return(all_tables_full)
 }
@@ -242,7 +194,7 @@ prepCHPtables <- function(chp_waves = 22:29,
 prepCHPcombined <- function(chp_waves = 22:29, overwrite_chp = FALSE) {
 
   # prep microdata and tables
-  chp_microdata <- prepCHPmicrodata(chp_waves = chp_waves, overwrite_chp = overwrite_chp)
+  # chp_microdata <- prepCHPmicrodata(chp_waves = chp_waves, overwrite_chp = overwrite_chp)
   chp_tables <- prepCHPtables(chp_waves = chp_waves, overwrite_chp = overwrite_chp)
 
 
@@ -360,4 +312,60 @@ prepCHPcombined <- function(chp_waves = 22:29, overwrite_chp = FALSE) {
 
   # write out cleaned, final CHP data
   write.csv(chp_tables, glue("data/final/chp_cleaned_waves{min(chp_waves)}to{max(chp_waves)}.csv"))
+}
+
+
+
+
+#' Read entire tables
+read_CHP_health_tbls <- function(t) {
+
+  # get wave name
+  wave_num <- as.numeric(gsub("health5_week|[.]xlsx", "", t))
+
+  # sheetnames (each is a state / 'US')
+  sheets <- c("US", state.abb, "DC")
+
+  # iterate through sheets
+  tbl_est <- map_dfr(sheets, function(s) read_CHP_health(sh = s, tbl = t, type = "est", wv = wave_num))
+  tbl_se  <- map_dfr(sheets, function(s) read_CHP_health(sh = s, tbl = t, type = "se", wv = wave_num))
+
+  bind_rows(
+    tbl_est %>% mutate(type = "est"),
+    tbl_se %>% mutate(type = "se")
+  ) %>%
+    relocate(type)
+}
+
+#' Read sheets in a table
+read_CHP_health <- function(sh, tbl, type, wv) {
+
+  dest_dir <- file.path("data", "raw", "census-household-pulse", "tables")
+
+  if (type == "est")
+    tbl <- gsub("health5", "health5_se", tbl)
+
+  tmp <- suppressMessages(read_excel(path(dest_dir, tbl), skip = 3, sheet = sh, na = ""))
+
+  # get colnames -- same in each file, pull from estimates
+  colnames <- as.vector(apply(tmp, 2, function(c) {
+    c <- c[1:3] # make col names from first 3 rows
+    c <- c[!(is.na(c) | c == "NA")] # drop NAs
+    paste(c, collapse = "_")
+  }))
+
+  # setcolnames and drop extra rows
+  setnames(tmp, colnames)
+
+  # do remaining cleaning
+  out <- tmp %>%
+    slice(5:n()) %>%
+    mutate(demo = ifelse(is.na(Total), `Select characteristics`, NA), .before = `Select characteristics`) %>%
+    fill(demo) %>%
+    mutate(demo = ifelse(is.na(demo), "Total", demo),
+           pop = sh,
+           wave = wv) %>%
+    filter(!(is.na(Total) | grepl("^[*]", `Select characteristics`)))
+
+  return(out)
 }
