@@ -83,7 +83,7 @@ getStatePopTotals <- function(filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.
 #'
 cleanCDCdata <- function(cdc_path,
                          cdc_age_path,
-                         statepop_download = F,
+                         statepop_download = FALSE,
                          statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv") {
   require(tidyverse)
 
@@ -134,7 +134,7 @@ cleanCDCdata <- function(cdc_path,
 
 
 getOWIDdata <- function(download_date = NULL,
-                        download = F,
+                        download = FALSE,
                         statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv", statepop_download = F) {
 
   # download new version of data
@@ -189,8 +189,8 @@ getOWIDdata <- function(download_date = NULL,
 getBenchmark <- function(benchmark_date,
                          cdc_path,
                          cdc_age_path,
-                         download_owid = F,
-                         statepop_download = F,
+                         download_owid = FALSE,
+                         statepop_download = FALSE,
                          statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv") {
 
   ##### CDC
@@ -198,7 +198,7 @@ getBenchmark <- function(benchmark_date,
   cdc <- cleanCDCdata(cdc_path, cdc_age_path, statepop_download = statepop_download, statepop_filepath = statepop_filepath)
   write.csv(cdc,
     file = file.path("data", "raw", "CDC", paste0("cdc_cleaned_", benchmark_date, ".csv")),
-    row.names = F
+    row.names = FALSE
   )
 
 
@@ -217,7 +217,7 @@ getBenchmark <- function(benchmark_date,
 
     write.csv(owid,
       file = file.path("data", "raw", "OWID", paste0("owid_cleaned_", benchmark_date, ".csv")),
-      row.names = F
+      row.names = FALSE
     )
 
     # check OWID interpolation
@@ -251,7 +251,7 @@ getBenchmark <- function(benchmark_date,
   ## write out to file
   write.csv(benchmark,
     file = file.path("data", "final", glue("benchmark_{benchmark_date}.csv")),
-    row.names = F
+    row.names = FALSE
   )
 
 
