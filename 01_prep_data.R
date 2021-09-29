@@ -17,11 +17,9 @@ benchmark_dates <- c('2021-04-12',"2021-04-21", "2021-05-05", "2021-05-26")
 for (b in benchmark_dates) {
   # have to download CDC locally and specify paths
   cdc_path <- path(
-    "data", "raw", "CDC",
     paste0("trends_in_number_of_covid19_vaccinations_in_the_us_", b, ".csv")
   )
   cdc_age_path <- path(
-    "data", "raw", "CDC",
     paste0("demographic_trends_of_people_receiving_covid19_vaccinations_in_the_united_states_", b, ".csv")
   )
 
