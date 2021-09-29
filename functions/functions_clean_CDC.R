@@ -114,9 +114,9 @@ cleanCDCdata <- function(cdc_path,
   cdcdata <- left_join(cdcdata, cdc_by_age, by = "date") %>%
     replace_na(list(n_vax_notx = 0, pct_vax_under18 = 0, n_vax_notx_over18 = 0)) %>%
     mutate(
-      n_vax_tx = n_vaccinated_allages - n_vax_notx # impute TX-only doses
-      , n_vax_tx_over18 = n_vax_tx * (1 - pct_vax_under18) # impute number of TX doses administered to adults
-      , n_pop_vaccinated = n_vax_tx_over18 + n_vax_notx_over18 # get total number of US adults with >=1 dose by adding TX and non-TX adult doses
+      n_vax_tx = n_vaccinated_allages - n_vax_notx, # impute TX-only doses
+      n_vax_tx_over18 = n_vax_tx * (1 - pct_vax_under18), # impute number of TX doses administered to adults
+      n_pop_vaccinated = n_vax_tx_over18 + n_vax_notx_over18 # get total number of US adults with >=1 dose by adding TX and non-TX adult doses
     ) %>%
     select(date, state, n_pop_vaccinated)
 
@@ -195,7 +195,11 @@ getBenchmark <- function(benchmark_date,
 
   ##### CDC
   # clean and write out CDC data
-  cdc <- cleanCDCdata(cdc_path, cdc_age_path, statepop_download = statepop_download, statepop_filepath = statepop_filepath)
+  cdc <- cleanCDCdata(cdc_path,
+                      cdc_age_path,
+                      statepop_download = statepop_download,
+                      statepop_filepath = statepop_filepath)
+
   write.csv(cdc,
     file = file.path("data", "raw", "CDC", paste0("cdc_cleaned_", benchmark_date, ".csv")),
     row.names = FALSE
