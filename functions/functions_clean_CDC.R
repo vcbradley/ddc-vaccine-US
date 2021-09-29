@@ -85,8 +85,6 @@ cleanCDCdata <- function(cdc_path,
                          cdc_age_path,
                          statepop_download = FALSE,
                          statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv") {
-  require(tidyverse)
-
   # read in data
   cdcdata <- fread(cdc_path,
     skip = 2,
@@ -122,7 +120,8 @@ cleanCDCdata <- function(cdc_path,
 
 
   # get state pop totals to calculate % uptake
-  state_pop_totals <- getStatePopTotals(filepath = statepop_filepath, download = statepop_download) %>%
+  state_pop_totals <- getStatePopTotals(filepath = statepop_filepath,
+                                        download = statepop_download) %>%
     filter(state == "US") %>%
     select(-state_name)
 
