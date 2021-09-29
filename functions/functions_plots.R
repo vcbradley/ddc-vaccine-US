@@ -263,5 +263,6 @@ makeCompPlot <- function(df, show_states, labels){
                          , heights = c(10,11)
   )
 
+
   return(grid_plot)
 }

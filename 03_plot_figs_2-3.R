@@ -10,8 +10,10 @@ max_date <- "2021-05-19"
 # which version of the benchmark to use
 benchmark_date <- "2021-05-26"
 
-plot_width <- 9
-plot_height <- 6
+
+plot_width = 6.5
+plot_height = 4
+
 
 
 ######### BENCHMARK DATA ###########
@@ -58,53 +60,56 @@ plt_annotate <- tibble(
   mutate(plt_lbl = glue("'{study_name}' (n%~~%'{n}')"),
          plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "CDC (benchmark)"))
 
-plot_fig2 <- ggplot(all_polls_plt_noerror) +
-  geom_line(
-    data = benchmark,
-    aes(x = as.Date(date), y = pct_pop_vaccinated, color = "CDC (benchmark)")) +
+
+plot_fig2 = ggplot(all_polls_plt_noerror) +
+  geom_line(data = benchmark
+            , aes(x = as.Date(date), y = pct_pop_vaccinated, color = 'CDC (benchmark)')) +
   geom_pointline(
-    aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name),
-    size = 0.5,
-    position = position_dodge(0.008 * 365)
-  ) +
+    aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name)
+    , position = position_dodge(0.008 * 365)
+    , size = 0.5) +
   geom_pointrange(
-    aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5, color = study_name),
-    position = position_dodge(0.008 * 365),
-    fatten = 2
-  ) +
+    aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5, color = study_name)
+    , position = position_dodge(0.008 * 365)
+    , fatten = 2
+    , show.legend = FALSE) +
+  theme_pubr() +
   geom_text(
     data = plt_annotate,
     aes(x = as.Date(x),
         y = y, label = plt_lbl, color = study_name),
-    # direction = "x",
-    # nudge_x = 1,
+    nudge_x = 1,
     parse = TRUE,
     inherit.aes = FALSE,
     hjust = 0,
-    # min.segment.length = 10,
-    size = 3
+    size = 3,
+    show.legend = FALSE
   ) +
-  theme_pubr() +
-  labs(x = NULL,
-       y = "% Vaccinated (at least 1 dose)",
-       color = "Study") +
+  theme(legend.position = 'none'
+        , plot.margin = unit(c(1,9,1,1), "lines")
+        , legend.text=element_text(size=8)
+        , text = element_text(size=10)
+        , axis.text = element_text(size =10)
+        ) +
+  labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
                      breaks = seq(0, 0.8, 0.1),
                      expand = expansion(mult = c(0, 0.01))) +
   scale_x_date(date_labels = "%b\n%Y",
                breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-               limits = c(as.Date("2021-01-01"), as.Date("2021-07-15"))) +
+               limits = c(as.Date("2021-01-01"), as.Date("2021-05-20"))) +
   coord_cartesian(clip = "off") +
-  guides(color = FALSE)
-plot_fig2
+  geom_hline(yintercept = 0.5, lty = 2) +
+  annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
 
-ggsave(plot_fig2,
-  filename = file.path("plots", "fig2.png"),
-  width = 6,
-  height = 3,
-  units = "in"
-)
+
+ggsave(plot_fig2
+       , filename = file.path('plots', 'fig2.png')
+       , device = 'png'
+       , width = plot_width
+       , height = plot_height
+       , units = 'in')
 
 
 
@@ -198,6 +203,25 @@ fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] + scale_y_continuou
 
 
 ######### MAKE PANELS #########
+## 4 panel
+fig3_4panel <- ggarrange(fig3_pl[["panelA_error"]],
+                         fig3_pl[["panelB_sdG"]],
+                         fig3_pl[["panelC_DO"]],
+                         fig3_pl[["panelD_ddc"]],
+                         common.legend = TRUE,
+                         legend = "bottom",
+                         labels = c("A", "B", "C", "D", "E", "F"),
+                         nrow = 2, ncol = 2,
+                         align = "hv"
+)
+ggsave(fig3_4panel,
+       filename = file.path("plots", "fig3_4panel.png"),
+       device = "png",
+       width = 8,
+       height = 7,
+       units = "in"
+)
+
 ## 6 panel
 fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
   fig3_pl[["panelB_sdG"]],
