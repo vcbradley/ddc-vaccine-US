@@ -250,7 +250,7 @@ getBenchmark <- function(benchmark_date,
   # only if the data exists for that date
   owid_raw_path <- paste0("owid_raw_{benchmark_date}.csv")
 
-  if (file.exists(owid_raw_path) | is.null(benchmark_date)) {
+  if (!is.null(benchmark_date)) {
     owid <- getOWIDdata(
       download_date = benchmark_date,
       download = download_owid,
@@ -279,7 +279,9 @@ getBenchmark <- function(benchmark_date,
       cdc %>% mutate(source = "CDC_historical"),
       owid %>% mutate(source = "OWID")
     )
-  } else {
+  }
+
+  if (is.null(benchmark_date)) { {
     benchmark <- cdc %>% mutate(source = "CDC_historical")
   }
 
