@@ -12,7 +12,7 @@ source("functions/functions_calc_ddc.R")
 
 ######### PREP BENCHMARK DATA #########
 ### Loop through all dates with benchmark data in the repo
-benchmark_dates <- c('2021-04-12',"2021-04-21", "2021-05-05", "2021-05-26")
+benchmark_dates <- c("2021-04-21", "2021-05-05", "2021-05-26")
 
 for (b in benchmark_dates) {
   # have to download CDC locally and specify paths
