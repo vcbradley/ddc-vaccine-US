@@ -240,16 +240,14 @@ getBenchmark <- function(benchmark_date,
                       statepop_filepath = statepop_filepath)
 
   write.csv(cdc,
-    file = file.path("data", "raw", "CDC", paste0("cdc_cleaned_", benchmark_date, ".csv")),
-    row.names = FALSE
+            file = file.path("data", "raw", "CDC", paste0("cdc_cleaned_", benchmark_date, ".csv")),
+            row.names = FALSE
   )
 
 
   #### OWID
   # clean and write out OWID data
   # only if the data exists for that date
-  owid_raw_path <- paste0("owid_raw_{benchmark_date}.csv")
-
   if (!is.null(benchmark_date)) {
     owid <- getOWIDdata(
       download_date = benchmark_date,
@@ -259,20 +257,12 @@ getBenchmark <- function(benchmark_date,
     )
 
     write.csv(owid,
-      file = file.path("data", "raw", "OWID", paste0("owid_cleaned_", benchmark_date, ".csv")),
-      row.names = FALSE
+              file = file.path("data", "raw", "OWID", paste0("owid_cleaned_", benchmark_date, ".csv")),
+              row.names = FALSE
     )
 
     # check OWID interpolation
-    ggplot(owid, aes(x = date, y = pct_pop_vaccinated, group = state, color = n_pop_vaccinated_imputedflag)) +
-      geom_line() +
-      ggtitle("Linear interpolation of missing state benchmark data") +
-      facet_wrap(~ as.numeric(state == "US"), scales = "free") +
-      theme_bw()
-    ggsave(
-      filename = file.path("data", "raw", "OWID", paste0("plot_owid_interp_check_", benchmark_date, ".png")),
-      width = 8, height = 4, units = "in", device = "png"
-    )
+    check_owid_interp(owid, benchmark_date)
 
     #### combine CDC and OWID data
     benchmark <- bind_rows(
@@ -294,19 +284,49 @@ getBenchmark <- function(benchmark_date,
 
   ## write out to file
   write.csv(benchmark,
-    file = file.path("data", "final", glue("benchmark_{benchmark_date}.csv")),
-    row.names = FALSE
+            file = file.path("data", "final", glue("benchmark_{benchmark_date}.csv")),
+            row.names = FALSE
   )
 
 
   # check comparison
-  ggplot(filter(benchmark, state == "US")) +
+  comp_cdc_owid(benchmark, benchmark_date)
+
+  return("Done!")
+}
+
+
+
+#' Compare CDC and OWID and save the result
+comp_cdc_owid <- function(benchmark, benchmark_date) {
+  gg_chk <- ggplot(filter(benchmark, state == "US")) +
     geom_line(aes(x = date, y = pct_pop_vaccinated, color = source)) +
     theme_pubclean() +
     labs(title = "Comparison of Vaccine Uptake from CDC and OWID", x = "", y = "% vaccinated") +
     scale_y_continuous(labels = percent)
-  ggsave(paste0("data/plot_benchmark_comparison_", benchmark_date, ".png"), device = "png", height = 5, width = 7, units = "in")
+  ggsave(glue("data/CDC/checks/plot_benchmark_comparison_{benchmark_date}.png"),
+         gg_chk,
+         height = 5, width = 7, units = "in")
+}
 
 
-  return("Done!")
+# Check OWID interpolation ----
+
+check_owid_interp <- function(owid, benchmark_date) {
+  gg_chk <- owid %>%
+    ggplot(aes(x = date,
+               y = pct_pop_vaccinated,
+               group = state,
+               color = n_pop_vaccinated_imputedflag)) +
+    geom_line() +
+    ggtitle("Linear interpolation of missing state benchmark data") +
+    facet_wrap(~ as.numeric(state == "US"), scales = "free") +
+    theme_bw()
+
+  ggsave(
+    filename = path("data", "CDC", "checks",
+                    glue("plot_owid_interp_check_{benchmark_date}.png")),
+    gg_chk,
+    width = 8, height = 4, units = "in", device = "png"
+  )
 }
