@@ -167,15 +167,7 @@ getOWIDdata <- function(download_date = NULL,
                         statepop_download = FALSE) {
 
   # download new version of data
-  if (is.null(date) | download) {
-    filepath <- file.path("data", "raw", "OWID", glue("owid_raw_{Sys.Date()}.csv"))
-
-    owd_url <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/us_state_vaccinations.csv"
-    download.file(url = owd_url, destfile = filepath)
-
-  } else {
-    filepath <- glue("owid_raw_{download_date}.tab")
-  }
+  filepath <- glue("owid_raw_{download_date}.tab")
 
   # read in data and clean
   owid <- get_dataframe_by_name(filepath, dataset = dvdoi, original = TRUE, .f = fread) %>%
@@ -240,7 +232,7 @@ getBenchmark <- function(benchmark_date,
                       statepop_filepath = statepop_filepath)
 
   write.csv(cdc,
-            file = file.path("data", "raw", "CDC", paste0("cdc_cleaned_", benchmark_date, ".csv")),
+            file = file.path("data", "CDC", paste0("cdc_cleaned_", benchmark_date, ".csv")),
             row.names = FALSE
   )
 
@@ -257,7 +249,7 @@ getBenchmark <- function(benchmark_date,
     )
 
     write.csv(owid,
-              file = file.path("data", "raw", "OWID", paste0("owid_cleaned_", benchmark_date, ".csv")),
+              file = file.path("data", "OWID", paste0("owid_cleaned_", benchmark_date, ".csv")),
               row.names = FALSE
     )
 
