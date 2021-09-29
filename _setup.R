@@ -8,6 +8,7 @@ pkg.list <- c(
   "fs",
   "readr",
   # data reading
+  "dataverse",
   "curl",
   "readxl",
   "data.table",
