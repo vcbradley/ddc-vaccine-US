@@ -3,9 +3,20 @@
 getPctVaxxedUnder18 <- function(cdc_age_path) {
 
   # read in data
-  cdcdata_age <- fread(cdc_age_path,
-    select = c("Date", "Age Group", "Demographic Group", "People with at least one dose", "People who are fully vaccinated")
+
+  cdcdata_age <-  get_dataframe_by_name(
+    filename = cdc_age_path,
+    dataset = dvdoi,
+    original =  TRUE,
+    .f = function(x) fread(x,
+                           skip = 2,
+                           select = c("Date",
+                                      "Age Group",
+                                      "Demographic Group",
+                                      "People with at least one dose",
+                                      "People who are fully vaccinated"))
   )
+
   setnames(cdcdata_age, c("date", "age_group", "n_vaccinated", "n_fully_vaccinated"))
 
   # limit to rows with age data
@@ -39,27 +50,34 @@ getPctVaxxedUnder18 <- function(cdc_age_path) {
 
   # we only really need
   # n_vax_notx: the total number of vaccinations outside of TX on each day
-  # pct_vax_under18: the proportion of total one-dose vaccinations administered to under-18s on each day
-  cdcdata_age <- cdcdata_age %>% select(date, n_vax_notx, n_vax_notx_over18, pct_vax_under18)
+  # pct_vax_under18: the proportion of total one-dose vaccinations administered
+  # to under-18s on each day
+  cdcdata_age <- cdcdata_age %>%
+    select(date, n_vax_notx, n_vax_notx_over18, pct_vax_under18)
+
   return(cdcdata_age)
 }
 
 
 
-getStatePopTotals <- function(filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv", download = F) {
-  require(data.table)
+getStatePopTotals <- function(filepath = "SCPRC-EST2019-18+POP-RES.tab",
+                              download = FALSE) {
 
-  # re-download US 18+ population totals if download == T, or if target file is empty
-  if (download | !file.exists(filepath)) {
-    url <- "https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/state/detail/SCPRC-EST2019-18+POP-RES.csv"
-    download.file(url, destfile = filepath)
-  }
+  # "https://www2.census.gov/programs-surveys/popest/datasets/2010-2019/state/detail/SCPRC-EST2019-18+POP-RES.csv"
 
   # read in pop totals
-  state_pop_totals <- fread(filepath, select = c("NAME", "POPEST18PLUS2019"))
+  state_pop_totals <- get_dataframe_by_name(
+    path_file(filepath),
+    dataset = dvdoi,
+    original = TRUE,
+    .f = function(x) fread(x, select = c("NAME", "POPEST18PLUS2019")))
 
   # get state abbreviations from state names
-  state_pop_totals <- merge(state_pop_totals, cbind(state.abb, state.name), by.x = "NAME", by.y = "state.name", all.x = T)
+  state_pop_totals <- merge(state_pop_totals,
+                            cbind(state.abb, state.name),
+                            by.x = "NAME",
+                            by.y = "state.name",
+                            all.x = TRUE)
 
   # fix missing abbrevs
   state_pop_totals[NAME == "United States", state.abb := "US"]
@@ -67,7 +85,9 @@ getStatePopTotals <- function(filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.
   state_pop_totals[NAME == "Puerto Rico Commonwealth", state.abb := "PR"]
 
   # rename columns
-  setnames(state_pop_totals, old = c("NAME", "state.abb", "POPEST18PLUS2019"), new = c("state_name", "state", "pop_total"))
+  setnames(state_pop_totals,
+           old = c("NAME", "state.abb", "POPEST18PLUS2019"),
+           new = c("state_name", "state", "pop_total"))
 
   return(state_pop_totals)
 }
@@ -84,11 +104,19 @@ getStatePopTotals <- function(filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.
 cleanCDCdata <- function(cdc_path,
                          cdc_age_path,
                          statepop_download = FALSE,
-                         statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv") {
+                         statepop_filepath = "SCPRC-EST2019-18+POP-RES.tab") {
   # read in data
-  cdcdata <- fread(cdc_path,
-    skip = 2,
-    select = c("Date Type", "Date", "Program", "People with at least One Dose Cumulative", "People Fully Vaccinated Cumulative")
+  cdcdata <-  get_dataframe_by_name(
+    filename = cdc_path,
+    dataset = dvdoi,
+    original =  TRUE,
+    .f = function(x) fread(x,
+                           skip = 2,
+                           select = c("Date Type",
+                                      "Date",
+                                      "Program",
+                                      "People with at least One Dose Cumulative",
+                                      "People Fully Vaccinated Cumulative"))
   )
 
   # rename columns
@@ -132,22 +160,25 @@ cleanCDCdata <- function(cdc_path,
 }
 
 
+#' Get data from OWID
 getOWIDdata <- function(download_date = NULL,
                         download = FALSE,
-                        statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv", statepop_download = F) {
+                        statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.tab",
+                        statepop_download = FALSE) {
 
   # download new version of data
   if (is.null(date) | download) {
-    filepath <- file.path("data", "raw", "OWID", paste0("owid_raw_", Sys.Date(), ".csv"))
+    filepath <- file.path("data", "raw", "OWID", glue("owid_raw_{Sys.Date()}.csv"))
 
     owd_url <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/us_state_vaccinations.csv"
     download.file(url = owd_url, destfile = filepath)
+
   } else {
-    filepath <- file.path("data", "raw", "OWID", paste0("owid_raw_", download_date, ".csv"))
+    filepath <- glue("owid_raw_{download_date}.csv")
   }
 
   # read in data and clean
-  owid <- fread(filepath) %>%
+  owid <- get_dataframe_by_name(filepath, dataset = dvdoi, original = TRUE, .f = fread) %>%
     rename(state_name = location) %>%
     filter(state_name != "Long Term Care") %>%
     mutate(
@@ -166,17 +197,26 @@ getOWIDdata <- function(download_date = NULL,
     ungroup()
 
   cat("Check number of days imputed:\n")
-  print(owid %>% summarize(n_imputed = sum(n_pop_vaccinated_imputedflag), pct_imputed = mean(n_pop_vaccinated_imputedflag)))
+  print(owid %>% summarize(n_imputed = sum(n_pop_vaccinated_imputedflag),
+                           pct_imputed = mean(n_pop_vaccinated_imputedflag)))
 
 
   # merge in state pop totals
-  state_pop_totals <- getStatePopTotals(filepath = statepop_filepath, download = statepop_download)
+  state_pop_totals <- getStatePopTotals(
+    filepath = statepop_filepath,
+    download = statepop_download)
+
   owid <- left_join(owid, state_pop_totals, by = "state_name") %>%
     mutate(
       pct_pop_vaccinated = n_pop_vaccinated / pop_total,
       state = ifelse(is.na(state), state_name, state)
     ) %>%
-    select(date, state, n_pop_vaccinated, n_pop_vaccinated_imputedflag, pct_pop_vaccinated, pop_total)
+    select(date,
+           state,
+           n_pop_vaccinated,
+           n_pop_vaccinated_imputedflag,
+           pct_pop_vaccinated,
+           pop_total)
 
   return(owid)
 }
@@ -190,7 +230,7 @@ getBenchmark <- function(benchmark_date,
                          cdc_age_path,
                          download_owid = FALSE,
                          statepop_download = FALSE,
-                         statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.csv") {
+                         statepop_filepath = "data/raw/CDC/SCPRC-EST2019-18+POP-RES.tab") {
 
   ##### CDC
   # clean and write out CDC data
@@ -208,7 +248,7 @@ getBenchmark <- function(benchmark_date,
   #### OWID
   # clean and write out OWID data
   # only if the data exists for that date
-  owid_raw_path <- file.path("data", "raw", "OWID", paste0("owid_raw_", benchmark_date, ".csv"))
+  owid_raw_path <- paste0("owid_raw_{benchmark_date}.csv")
 
   if (file.exists(owid_raw_path) | is.null(benchmark_date)) {
     owid <- getOWIDdata(
@@ -235,7 +275,6 @@ getBenchmark <- function(benchmark_date,
     )
 
     #### combine CDC and OWID data
-
     benchmark <- bind_rows(
       cdc %>% mutate(source = "CDC_historical"),
       owid %>% mutate(source = "OWID")
@@ -259,11 +298,11 @@ getBenchmark <- function(benchmark_date,
 
 
   # check comparison
-  ggplot(benchmark %>% filter(state == "US")) +
+  ggplot(filter(benchmark, state == "US")) +
     geom_line(aes(x = date, y = pct_pop_vaccinated, color = source)) +
     theme_pubclean() +
     labs(title = "Comparison of Vaccine Uptake from CDC and OWID", x = "", y = "% vaccinated") +
-    scale_y_continuous(labels = scales::percent)
+    scale_y_continuous(labels = percent)
   ggsave(paste0("data/plot_benchmark_comparison_", benchmark_date, ".png"), device = "png", height = 5, width = 7, units = "in")
 
 
