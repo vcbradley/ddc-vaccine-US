@@ -174,7 +174,7 @@ getOWIDdata <- function(download_date = NULL,
     download.file(url = owd_url, destfile = filepath)
 
   } else {
-    filepath <- glue("owid_raw_{download_date}.csv")
+    filepath <- glue("owid_raw_{download_date}.tab")
   }
 
   # read in data and clean
@@ -191,7 +191,7 @@ getOWIDdata <- function(download_date = NULL,
   owid <- owid %>%
     group_by(state_name) %>%
     mutate(
-      n_pop_vaccinated = na_interpolation(people_vaccinated),
+      n_pop_vaccinated = imputeTS::na_interpolation(people_vaccinated),
       n_pop_vaccinated_imputedflag = is.na(people_vaccinated)
     ) %>%
     ungroup()
@@ -281,7 +281,7 @@ getBenchmark <- function(benchmark_date,
     )
   }
 
-  if (is.null(benchmark_date)) { {
+  if (is.null(benchmark_date)) {
     benchmark <- cdc %>% mutate(source = "CDC_historical")
   }
 
