@@ -111,7 +111,8 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
                      expand = expansion(mult = c(0, 0.01))) +
   xdate_m +
   coord_cartesian(clip = "off") +
-  geom_hline(yintercept = 0.5, lty = 2, alpha = 0.5)# +
+  geom_hline(yintercept = 0.5, lty = 2, alpha = 0.5) +
+  expand_limits(y = 0.8)
 # annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
 
 
@@ -155,6 +156,8 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
        color = "Study",
        title = "Problem difficulty") +
   scale_color_manual(values = scale_values) +
+  expand_limits(y = 0) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
   xdate_m +
   annotate(geom = "text",
            color = "darkgray",
@@ -190,7 +193,9 @@ fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   xlim_val = xlims
 ) +
   labs(y = expression(sqrt((N-n)/N))) +
-  xdate_m
+  xdate_m +
+  expand_limits(y = 0) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.01)))
 
 ## panel D - ddc
 fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
