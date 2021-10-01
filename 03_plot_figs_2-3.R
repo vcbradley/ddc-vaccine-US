@@ -103,7 +103,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
         , text = element_text(size = 10)
         , axis.title = element_text(size = 12)
         , axis.text = element_text(size = 12)
-        ) +
+  ) +
   labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
@@ -112,7 +112,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
   xdate_m +
   coord_cartesian(clip = "off") +
   geom_hline(yintercept = 0.5, lty = 2, alpha = 0.5)# +
-  # annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
+# annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
 
 
 ggsave(plot_fig2
@@ -236,16 +236,38 @@ fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] +
   xdate_m
 
 # E and F together
-fig3_pl[["panelG_neff_all"]] <- plot_with_errorbands(
-  data = all_polls_plt_wide,
-  outcome = "n_eff_star_cap",
-  ylab = "Effective sample size",
-  xlim_val = xlims,
-  include_legend = FALSE,
-  title = "Effective sample size"
-) +
-  scale_y_log10() +
-  expand_limits(y = 5)
+fig3_pl[["panelG_neff_all"]] <-
+  plot_with_errorbands(
+    data = all_polls_plt_wide %>%
+      rowwise() %>%
+      mutate(
+        n_eff_adj_less10pct = min(n_eff_star_cap_less10pct, n_eff_star_cap_plus10pct),
+        n_eff_adj_less5pct  = min(n_eff_star_cap_less5pct, n_eff_star_cap_plus5pct),
+        n_eff_adj_plus10pct = max(n_eff_star_cap_less10pct, n_eff_star_cap_plus10pct),
+        n_eff_adj_plus5pct  = max(n_eff_star_cap_less5pct, n_eff_star_cap_plus5pct),
+        `n_eff_adj_no error` = `n_eff_star_cap_no error`,
+      ),
+    outcome = "n_eff_adj",
+    ylab = "Bias-adjusted\nEffective sample size",
+    xlim_val = xlims,
+    include_legend = FALSE,
+    title = NULL,
+    use_ribbons = c('5pct')
+  ) +
+  scale_y_log10(labels = comma) +
+  xdate_m +
+  theme_pubclean() +
+  expand_limits(y = 5) +
+  # facet_wrap(~ study_name) +
+  # guides(color = FALSE) +
+  scale_x_date(
+    labels = function(x) recode(format(as.Date(x), "%b"), "May" = "May 2021"),
+    breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
+    limits = c(as.Date("2021-01-01"), as.Date("2021-05-20"))) +
+  theme(axis.line = element_line(),
+        axis.text = element_text(color = "black"),
+        legend.position = "right") +
+  labs(color = NULL)
 
 
 
@@ -253,7 +275,7 @@ fig3_pl[["panelG_neff_all"]] <- plot_with_errorbands(
 
 ## New Fig. 1 ------
 layout =
-"AABC
+  "AABC
  AADE"
 
 (plot_fig2 +  guides(color = FALSE)) +
@@ -276,14 +298,10 @@ ggsave("plots/fig1_topline.pdf",
 
 
 ## New Fig. 2 ----
-fig3_pl[["panelG_neff_all"]] +
-  theme(
-    plot.title = element_text(size = 12, face = "bold", hjust = 0.5)
-  )
-
 ggsave("plots/fig2_n-eff.pdf",
-       w = 9,
-       h = 7,
+       fig3_pl[["panelG_neff_all"]],
+       w = 9*1.5,
+       h = 5*1.5,
        units = "cm")
 
 ## OLD R and R PANELS (Fig. 2 - 3)
@@ -309,21 +327,21 @@ ggsave(fig3_4panel,
 
 ## 6 panel -----
 fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
-  fig3_pl[["panelB_sdG"]],
-  fig3_pl[["panelC_DO"]],
-  fig3_pl[["panelD_ddc"]],
-  fig3_pl[["panelE_neff_fb"]],
-  fig3_pl[["panelF_neff_chp"]],
-  common.legend = TRUE,
-  legend = "bottom",
-  labels = c("A", "B", "C", "D", "E", "F"),
-  nrow = 2, ncol = 3,
-  align = "hv"
+                         fig3_pl[["panelB_sdG"]],
+                         fig3_pl[["panelC_DO"]],
+                         fig3_pl[["panelD_ddc"]],
+                         fig3_pl[["panelE_neff_fb"]],
+                         fig3_pl[["panelF_neff_chp"]],
+                         common.legend = TRUE,
+                         legend = "bottom",
+                         labels = c("A", "B", "C", "D", "E", "F"),
+                         nrow = 2, ncol = 3,
+                         align = "hv"
 )
 ggsave(fig3_6panel,
-  filename = file.path("plots", "fig3_6panel.png"),
-  device = "png",
-  width = 11,
-  height = 5,
-  units = "in"
+       filename = file.path("plots", "fig3_6panel.png"),
+       device = "png",
+       width = 11,
+       height = 5,
+       units = "in"
 )
