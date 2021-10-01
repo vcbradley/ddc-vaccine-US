@@ -63,7 +63,7 @@ plt_annotate <- tibble(
   y = c(0.58, 0.78, 0.645, 0.72),
   n = c("", "250,000", "1000", "75,000")
 ) %>%
-  mutate(plt_lbl = glue("'{study_name}' (n%~~% '{n}')"),
+  mutate(plt_lbl = glue("'{study_name}'~~(n%~~%'{n}')"),
          plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "CDC (benchmark)"))
 
 
