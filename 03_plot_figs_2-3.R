@@ -50,13 +50,10 @@ all_polls_plt_wide <- all_polls_plt %>%
 
 ########## MAKE PLOT ##########
 
-xdate_my <- scale_x_date(date_labels = "%b\n%Y",
-                         breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-                         limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
-
-xdate_m <- scale_x_date(labels = function(x) recode(format(as.Date(x), "%b"), "May" = "May 2021", "Jan" = "Jan 2021"),
-                        breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-                        limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
+xdate_m <- scale_x_date(
+  labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan 2021"),
+  breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
+  limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
 
 ######### PLOT FIG 2 - ESTIMATES OVER TIME ###########
@@ -142,8 +139,7 @@ fig3_pl[["panelA_error"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelA_error"]] <- fig3_pl[["panelA_error"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m +
-  labs(x = 2021)
+  xdate_m
 
 
 ## panel B - sd_G
@@ -155,7 +151,6 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
        title = "Problem difficulty") +
   scale_color_manual(values = scale_values) +
   xdate_m +
-  labs(x = 2021) +
   annotate(geom = "text",
            color = "darkgray",
            x = as.Date("2021-04-13"),
@@ -176,8 +171,7 @@ fig3_pl[["panelC_f"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelC_f"]] <- fig3_pl[["panelC_f"]] +
   scale_y_continuous(labels = scales::percent) +
-  xdate_m +
-  labs(x = 2021)
+  xdate_m
 
 ## panel D - dropout odds
 fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
@@ -189,8 +183,7 @@ fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   xlim_val = xlims
 ) +
   labs(y = expression(sqrt((N-n)/N))) +
-  xdate_m +
-  labs(x = 2021)
+  xdate_m
 
 ## panel D - ddc
 fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
@@ -204,8 +197,7 @@ fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
 
 fig3_pl[["panelD_ddc"]] <- fig3_pl[["panelD_ddc"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m +
-  labs(x = 2021)
+  xdate_m
 
 
 
@@ -220,8 +212,7 @@ fig3_pl[["panelE_neff_fb"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelE_neff_fb"]] <- fig3_pl[["panelE_neff_fb"]] +
   scale_y_continuous(expand = c(0, 0)) +
-  xdate_m +
-  labs(x = 2021)
+  xdate_m
 
 ## panel F - effective sample size, Census Household Pulse
 fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
@@ -234,8 +225,7 @@ fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] +
   scale_y_continuous(expand = c(0, 0)) +
-  xdate_m +
-  labs(x = 2021)
+  xdate_m
 
 # E and F together
 fig3_pl[["panelG_neff_all"]] <- plot_with_errorbands(
@@ -280,7 +270,6 @@ ggsave("plots/fig1_topline.pdf",
 
 ## New Fig. 2 ----
 fig3_pl[["panelG_neff_all"]] +
-  labs(x = 2021) +
   theme(
     plot.title = element_text(size = 12, face = "bold", hjust = 0.5)
   )
