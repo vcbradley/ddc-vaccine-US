@@ -54,9 +54,9 @@ xdate_my <- scale_x_date(date_labels = "%b\n%Y",
                          breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
                          limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
-xdate_m <- scale_x_date(date_labels = "%b",
-                         breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-                         limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
+xdate_m <- scale_x_date(labels = function(x) recode(format(as.Date(x), "%b"), "May" = "May 2021", "Jan" = "Jan 2021"),
+                        breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
+                        limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
 
 ######### PLOT FIG 2 - ESTIMATES OVER TIME ###########
@@ -104,7 +104,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
         , text = element_text(size=10)
         , axis.text = element_text(size =10)
         ) +
-  labs(x = 2021, y = '% Vaccinated (at least 1 dose)', color = '') +
+  labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
                      breaks = seq(0, 0.8, 0.1),
