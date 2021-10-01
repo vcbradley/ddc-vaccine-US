@@ -68,8 +68,14 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
     data_min = data %>% select(x_est, y_est) %>% min()
     data_max = data %>% select(x_est, y_est) %>% max()
 
-    plot_min = data_min - 0.02*(data_max - data_min)
-    plot_max = data_max + 0.02*(data_max - data_min)
+    if(x == 'pop' & type == 'est'){
+      plot_min = 0.3
+      plot_max = 0.75
+    }else{
+      plot_min = data_min - 0.02*(data_max - data_min)
+      plot_max = data_max + 0.02*(data_max - data_min)
+    }
+
 
 
     cat(paste0('average difference:\n', y_name,ifelse(mean_diff > 0, '+', ''), round(mean_diff*100, 2), 'pp\nx = ', 0.75 * plot_max,'y = ', 0.1 * plot_min, '\n'))
