@@ -63,18 +63,21 @@ plt_annotate <- tibble(
   y = c(0.58, 0.78, 0.645, 0.72),
   n = c("", "250,000", "1000", "75,000")
 ) %>%
-  mutate(plt_lbl = glue("'{study_name}' (n%~~%'{n}')"),
+  mutate(plt_lbl = glue("'{study_name}' (n%~~% '{n}')"),
          plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "CDC (benchmark)"))
 
 
 
 plot_fig2 = ggplot(all_polls_plt_noerror) +
-  geom_line(data = benchmark
-            , aes(x = as.Date(date), y = pct_pop_vaccinated, color = 'CDC (benchmark)')) +
+  geom_line(data = benchmark,
+            size = 1.5,
+            aes(x = as.Date(date),
+                y = pct_pop_vaccinated,
+                color = 'CDC (benchmark)')) +
   geom_pointline(
     aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name)
     , position = position_dodge(0.008 * 365)
-    , size = 0.5) +
+    , size = 2) +
   geom_pointrange(
     aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5, color = study_name)
     , position = position_dodge(0.008 * 365)
@@ -96,10 +99,10 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     show.legend = FALSE
   ) +
   theme(legend.position = 'none'
-        # , plot.margin = unit(c(1,9,1,1), "lines")
-        , legend.text=element_text(size=8)
-        , text = element_text(size=10)
-        , axis.text = element_text(size =10)
+        , plot.margin = unit(rep(0, 4), "lines")
+        , text = element_text(size = 10)
+        , axis.title = element_text(size = 12)
+        , axis.text = element_text(size = 12)
         ) +
   labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
   scale_color_manual(values = scale_values) +
@@ -108,7 +111,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
                      expand = expansion(mult = c(0, 0.01))) +
   xdate_m +
   coord_cartesian(clip = "off") +
-  geom_hline(yintercept = 0.5, lty = 2)# +
+  geom_hline(yintercept = 0.5, lty = 2, alpha = 0.5)# +
   # annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
 
 
@@ -134,17 +137,19 @@ fig3_pl[["panelA_error"]] <- plot_with_errorbands(
   outcome = "error",
   ylab = "Error",
   include_legend = TRUE,
-  title = "Estimate error",
+  title = "Actual error",
   xlim_val = xlims
 )
+
 fig3_pl[["panelA_error"]] <- fig3_pl[["panelA_error"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m
+  xdate_m +
+  labs(y = expression(bar(Y)[n] - bar(Y)[N]))
 
 
 ## panel B - sd_G
 fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
-  lemon::geom_pointline(aes(color = study_name)) +
+  lemon::geom_pointline(aes(color = study_name), size = 0.1) +
   theme_pubr() +
   labs(x = NULL, y = expression(sigma[Y]),
        color = "Study",
@@ -154,9 +159,11 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   annotate(geom = "text",
            color = "darkgray",
            x = as.Date("2021-04-13"),
-           y = 0.42,
-           size = 3,
-           label = "CDC (benchmark)")
+           y = 0.32,
+           size = 2.5,
+           label = "CDC (benchmark)") +
+  theme(axis.title = element_text(size = 8),
+        axis.text = element_text(size = 8))
 
 
 ## panel C - f, sampling fraction
@@ -197,7 +204,8 @@ fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
 
 fig3_pl[["panelD_ddc"]] <- fig3_pl[["panelD_ddc"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m
+  xdate_m +
+  labs(y = expression(hat(rho)[list(R, Y)]))
 
 
 
@@ -257,9 +265,8 @@ layout =
               guides = "collect") +
   plot_annotation(tag_levels = "a") &
   theme(legend.position = "bottom",
-        plot.title = element_text(size = 8, face = "bold"),
-        axis.title = element_text(size = 8),
-        axis.text = element_text(size = 8),
+        plot.title = element_text(size = 10, face = "bold"),
+        # axis.text = element_text(size = 8),
         plot.tag = element_text(face = 'bold'))
 
 ggsave("plots/fig1_topline.pdf",

@@ -13,7 +13,10 @@ plot_with_errorbands = function(data, outcome
     theme_pubr() +
     scale_color_manual(values = scale_values) +
     scale_fill_manual(values = scale_values, guide = 'none') +
-    labs(x = NULL, color = 'Study')
+    labs(x = NULL, color = 'Study') +
+    theme(axis.title = element_text(size = 8),
+          axis.text = element_text(size = 8),
+          plot.margin = unit(rep(0, 4), "lines"))
 
   if(!include_legend){
     plt = plt + theme(legend.position = 'none')
