@@ -237,6 +237,18 @@ fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] +
   xdate_m +
   labs(x = 2021)
 
+# E and F together
+fig3_pl[["panelG_neff_all"]] <- plot_with_errorbands(
+  data = all_polls_plt_wide,
+  outcome = "n_eff_star_cap",
+  ylab = "Effective sample size",
+  xlim_val = xlims,
+  include_legend = FALSE,
+  title = "Effective sample size"
+) +
+  scale_y_log10() +
+  expand_limits(y = 5)
+
 
 
 ######### MAKE PANELS #########
@@ -247,8 +259,8 @@ layout =
  AADE"
 
 (plot_fig2 +  guides(color = FALSE)) +
-  fig3_pl[[1]] +
-  (fig3_pl[[2]] + guides(color = FALSE)) +
+  fig3_pl[["panelA_error"]] +
+  (fig3_pl[["panelB_sdG"]] + guides(color = FALSE)) +
   fig3_pl[["panelC_DO"]] +
   fig3_pl[["panelD_ddc"]] +
   plot_layout(design = layout,
@@ -265,6 +277,18 @@ ggsave("plots/fig1_topline.pdf",
        h = 9*1.2,
        units = "cm")
 
+
+## New Fig. 2 ----
+fig3_pl[["panelG_neff_all"]] +
+  labs(x = 2021) +
+  theme(
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5)
+  )
+
+ggsave("plots/fig2_n-eff.pdf",
+       w = 9,
+       h = 7,
+       units = "cm")
 
 ## OLD R and R PANELS (Fig. 2 - 3)
 
