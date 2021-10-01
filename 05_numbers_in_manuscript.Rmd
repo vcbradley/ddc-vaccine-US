@@ -74,8 +74,37 @@ all_polls %>%
 ```
 
 ## State-level differences
+These are calculated in the plots in `02_plot_fig_1.R`
+
+
+
+# Section 2
+
+## Passing 50% uptake
 ```{r}
-all_polls_end_of_march %>% filter(pop != 'US') %>%
-  summarise(avg_pct_vaccinated = mean(pct_vaccinated), avg_pct_pop_vaccinated = mean(pct_pop_vaccinated)) %>%
-  mutate(diff = avg_pct_vaccinated - avg_pct_pop_vaccinated)
+all_polls %>%
+  filter(pop == 'US', mode %in% c('facebook', 'household_pulse'), end_date %in% c(as.Date('2021-03-27'), as.Date('2021-03-29'))) %>% 
+  select(study_name, end_date, pct_vaccinated, ci_2.5, ci_97.5)
+  
 ```
+
+
+## Design effects
+```{r}
+all_polls %>%
+  filter(pop == 'US') %>%
+  group_by(study_name) %>%
+  summarize(min(deff), mean(deff), max(deff))
+```
+
+
+# Using the CDC benchmark to identify survey error
+
+```{r}
+all_polls %>%
+  filter(pop == 'US', end_date > '2021-04-01') %>%
+  select(study_name, end_date, ddc_weighted, n_eff_star_cap, pct_reduction_n_eff_cap)
+```
+
+
+
