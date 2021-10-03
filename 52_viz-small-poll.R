@@ -57,6 +57,7 @@ polls %>%
   scale_color_manual(values = color_pal) +
   scale_fill_manual(values = color_pal) +
   theme_pubclean() +
+  theme(strip.background = element_rect(fill = "transparent", color = "darkgray")) +
   guides(color = FALSE, fill = FALSE) +
   labs(y = "% Vaccinated (at least 1 dose)",
        x = NULL)
