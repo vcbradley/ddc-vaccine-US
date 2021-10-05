@@ -59,8 +59,8 @@ prepCHPmicrodata <- function(chp_waves = 22:29,
   # write cleaned microdata to file
   write_csv(hpdata,
             file = path(
-              "data/census-household-pulse/microdata",
-              glue("chp_microdata_cleaned_waves{min(hpdata$WEEK)}to{max(hpdata$WEEK)}.csv.gz")
+              "data/final",
+              glue("chp_cleaned_waves{min(hpdata$WEEK)}to{max(hpdata$WEEK)}.csv.gz")
             )
   )
 
