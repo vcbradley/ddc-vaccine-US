@@ -1,11 +1,17 @@
+library(tidyverse)
 library(lubridate)
-library(patchwork)
 library(lemon)
 library(ggpubr)
 library(scales)
 library(wacolors)
 
+xdate_m2 <- scale_x_date(
+  labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan 2021"),
+  breaks = as.Date(c("2021-01-01", "2021-03-01", "2021-05-01")),
+  limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
+
+# data ----
 toplines <- read_csv("small-polls_toplines.csv")
 
 bench <- toplines %>%
@@ -44,10 +50,11 @@ polls %>%
             alpha = 0.3,
             lwd = 1,
             inherit.aes = FALSE) +
-  facet_wrap(~ pollster, nrow = 1) +
+  facet_rep_wrap(~ pollster, nrow = 1, repeat.tick.labels = TRUE) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
                      breaks = seq(0, 0.75, 0.25),
                      expand = expansion(add = c(0.001, 0.05))) +
+  xdate_m2 +
   expand_limits(y = 0.75) +
   geom_pointline() +
   geom_ribbon(aes(ymax = ub, ymin = lb),
@@ -56,9 +63,11 @@ polls %>%
   geom_text(aes(label = pct_label), nudge_y = 0.05, size = 3) +
   scale_color_manual(values = color_pal) +
   scale_fill_manual(values = color_pal) +
-  theme_pubclean() +
-  theme(strip.background = element_rect(fill = "transparent", color = "darkgray")) +
+  theme_pubr() +
   guides(color = FALSE, fill = FALSE) +
+  theme(strip.background = element_rect(fill = "transparent", color = "black"),
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 10)) +
   labs(y = "% Vaccinated (at least 1 dose)",
        x = NULL)
 
