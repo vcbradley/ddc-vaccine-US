@@ -29,7 +29,7 @@ benchmark <- fread(path("data", "final", glue("benchmark_{which_benchmark}.csv")
 #### RUN CLEAN CHP DATA #####
 chp_waves <- 22:29
 prepCHPcombined(chp_waves = chp_waves)
-
+writeHPrepweights(chp_waves = chp_waves)
 
 #### RUN CLEAN FACEBOOK ######
 cleanFBdata()

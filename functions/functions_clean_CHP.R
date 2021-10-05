@@ -1,43 +1,36 @@
+library(stringr)
+
 # Functions to prep CHP data
 
 prepCHPmicrodata <- function(chp_waves = 22:29,
                              overwrite_chp = FALSE) {
-  dest_dir <- file.path("data", "raw", "census-household-pulse", "microdata")
-
-  # download data if overwrite_chp or if missing
-  for (w in chp_waves) {
-    print(w)
-    filename <- paste0("HPS_Week", w, "_PUF_CSV")
-    hp_url <- paste0("https://www2.census.gov/programs-surveys/demo/datasets/hhp/2021/wk", w, "/", filename, ".zip")
-    file_path <- file.path(dest_dir, filename)
-
-    if (overwrite_chp | !file.exists(file_path)) {
-      download.file(url = hp_url, destfile = paste0(file_path, ".zip"))
-      unzip(paste0(file_path, ".zip"), exdir = file_path)
-      file.remove(paste0(file_path, ".zip"))
-    }
-  }
 
   # read in data and stack
   hpvars <- c(
     "SCRAM", "WEEK", "EST_ST", "RECVDVACC", "DOSES", "GETVACC", "GETVACRV", "PWEIGHT",
     "TBIRTH_YEAR", "RRACE", "RHISPANIC", "EEDUC"
   )
-  hpdata <- purrr::map_dfr(chp_waves, function(w) {
-    filename <- file.path(dest_dir, paste0("HPS_Week", w, "_PUF_CSV/pulse2021_puf_", w, ".csv"))
-    temp <- fread(filename, select = hpvars)
-    temp
-  })
+
+  hpdata <- map_dfr(chp_waves,
+                    function(w) {
+                      get_dataframe_by_name(
+                        glue("pulse2021_puf_{w}.tab"),
+                        dataset = dvdoi,
+                        original = TRUE,
+                        .f = function(x) fread(x, select = hpvars)
+                      )
+                    }
+  )
 
   # translate EST_ST to state name
-  estcode_to_state <- fread("data/raw/census-household-pulse/estcode_to_state.csv")
+  estcode_to_state <- fread("data/census-household-pulse/estcode_to_state.csv")
   hpdata <- left_join(hpdata, estcode_to_state, by = "EST_ST")
 
   # calculate age
   hpdata <- hpdata %>% mutate(age = 2021 - TBIRTH_YEAR)
 
   # get start and end dates for each wave
-  chp_wave_dates <- fread("data/raw/census-household-pulse/chp_wave_dates.csv")
+  chp_wave_dates <- fread("data/census-household-pulse/chp_wave_dates.csv")
   hpdata <- left_join(hpdata, chp_wave_dates, by = c("WEEK" = "wave_num")) %>%
     mutate(
       start_date = as.Date(as.character(start_date), format = "%Y%m%d"),
@@ -45,10 +38,9 @@ prepCHPmicrodata <- function(chp_waves = 22:29,
     )
 
   # get state abbrvs
-  hpdata <- left_join(hpdata,
-    tibble(state_name = c(state.name, "District of Columbia"), state = c(state.abb, "DC")),
-    by = "state_name"
-  )
+  stdata <- tibble(state_name = c(state.name, "District of Columbia"),
+                   state = c(state.abb, "DC"))
+  hpdata <- left_join(hpdata, stdata, by = "state_name")
 
   # create some indicators
   hpdata <- hpdata %>%
@@ -56,30 +48,46 @@ prepCHPmicrodata <- function(chp_waves = 22:29,
       vaccinated = as.numeric(RECVDVACC == 1),
       willing_def = as.numeric(GETVACC == 1 | GETVACRV == 1),
       willing_prob = as.numeric(GETVACC == 2 | GETVACRV == 2),
-      hesitant_prob = as.numeric(GETVACC == 3 | GETVACRV == 4) # question code switched from GETVACC to GETVACRV on wave 28 when they added 3 = unsure
-      , hesitant_def = as.numeric(GETVACC == 4 | GETVACRV == 5),
-      unsure = as.numeric(RECVDVACC != 1 & (GETVACRV == 3 | GETVACC < 0 | GETVACRV < 0)) # refusals and explicit unsures coded as unsure
+      # question code switched from GETVACC to GETVACRV on wave 28 when they added 3 = unsure
+      hesitant_prob = as.numeric(GETVACC == 3 | GETVACRV == 4),
+      hesitant_def = as.numeric(GETVACC == 4 | GETVACRV == 5),
+      # refusals and explicit unsures coded as unsure
+      unsure = as.numeric(RECVDVACC != 1 & (GETVACRV == 3 | GETVACC < 0 | GETVACRV < 0))
     ) %>%
     mutate_at(vars(vaccinated:unsure), ~ replace(., is.na(.), 0))
 
   # write cleaned microdata to file
-  readr::write_csv(hpdata,
-    file = glue("data/raw/census-household-pulse/microdata/chp_microdata_cleaned_waves{min(hpdata$WEEK)}to{max(hpdata$WEEK)}.csv")
-  )
-
-  # combine replicate weights and write to file
-  hpdata_repwt <- purrr::map_dfr(chp_waves, function(w) {
-    filename <- glue("data/raw/census-household-pulse/microdata/HPS_Week{w}_PUF_CSV/pulse2021_repwgt_puf_{w}.csv")
-    fread(filename)
-  })
-  readr::write_csv(hpdata_repwt,
-    file = glue("data/raw/census-household-pulse/microdata/chp_rpwgts_cleaned_waves{min(hpdata_repwt$WEEK)}to{max(hpdata_repwt$WEEK)}_repwts.csv")
+  write_csv(hpdata,
+            file = path(
+              "data/census-household-pulse/microdata",
+              glue("chp_microdata_cleaned_waves{min(hpdata$WEEK)}to{max(hpdata$WEEK)}.csv.gz")
+            )
   )
 
   return(hpdata)
 }
 
 
+#' Download rep weights
+writeHPrepweights <- function(chp_waves) {
+  # combine replicate weights and write to file
+  hpdata_repwt <- map_dfr(chp_waves,
+                          function(w) {
+                            get_dataframe_by_name(
+                              glue("pulse2021_repwgt_puf_{w}.{case_when(w %in% c(22, 28) ~ 'tab', w %in% c(23:27, 29) ~ 'csv')}"),
+                              dataset = dvdoi,
+                              original = TRUE,
+                              .f = fread
+                            )
+                          }
+  )
+
+  write_csv(hpdata_repwt,
+            file = path("data/census-household-pulse/microdata/",
+                        glue("chp_rpwgts_cleaned_waves{min(hpdata_repwt$WEEK)}to{max(hpdata_repwt$WEEK)}_repwts.csv.gz")
+            )
+  )
+}
 
 getHPTabColnames <- function(cname, which = "est") {
   cname_new <- case_when(
@@ -117,10 +125,6 @@ getHPTabColnames <- function(cname, which = "est") {
 #' Prep CHP Tables
 prepCHPtables <- function(chp_waves = 22:29,
                           overwrite_chp = FALSE) {
-  dest_dir <- file.path("data", "raw", "census-household-pulse", "tables")
-
-
-
   ######## extract vax data from correct sheets and stack
   # for all tables
 
@@ -128,28 +132,25 @@ prepCHPtables <- function(chp_waves = 22:29,
   all_tbl <- map_dfr(census_tables, function(t) read_CHP_health_tbls(t))
 
   # bind together
-  all_tables <- filter(all_tbl, type == "est")
-  all_tables_se <- filter(all_tbl, type == "se")
+  all_tables    <- filter(all_tbl, type == "est") %>%
+    rename_with(function(x) getHPTabColnames(x, which = "est"))
 
-  setnames(all_tables,
-           old = names(all_tables),
-           new = getHPTabColnames(names(all_tables), which = "est"))
-  setnames(all_tables_se,
-           old = names(all_tables_se),
-           new = getHPTabColnames(names(all_tables_se), which = "SE"))
+  all_tables_se <- filter(all_tbl, type == "se") %>%
+    rename_with(function(x)getHPTabColnames(x, which = "SE"))
 
-  browser()
   # merge
   all_tables_full <- full_join(all_tables, all_tables_se,
                                by = c("demo", "subgroup", "pop", "wave")) %>%
     relocate(pop, wave, .before = demo) %>%
+    select(-matches("type\\.(x|y)")) %>%
     mutate_at(vars(pop_total:n_vaxunsure_SE), as.numeric)
 
 
   # get start and end dates for each wave
-  chp_wave_dates <- fread("data/raw/census-household-pulse/chp_wave_dates.csv")
+  chp_wave_dates <- fread("data/census-household-pulse/chp_wave_dates.csv")
+
   all_tables_full <- left_join(all_tables_full, chp_wave_dates,
-    by = c("wave" = "wave_num")
+                               by = c("wave" = "wave_num")
   ) %>%
     mutate(
       start_date = as.Date(as.character(start_date), format = "%Y%m%d"),
@@ -179,22 +180,24 @@ prepCHPtables <- function(chp_waves = 22:29,
     pct_haveorwillgetvax = pct_willing + pct_vaccinated # unsure not uncluded in have or will get vax
   )
 
-  write.csv(all_tables_full,
-            file = file.path("data", "raw", "census-household-pulse", "tables",
+  # write for temporarry saving
+  write_csv(all_tables_full,
+            file = file.path("data", "census-household-pulse", "tables",
                              paste0("chp_tables_cleaned_waves",
-                                    min(chp_waves), "to", max(chp_waves), ".csv")
-                             )
+                                    min(chp_waves), "to", max(chp_waves), ".csv.gz")
             )
+  )
 
   return(all_tables_full)
 }
 
 
 
+#' Combine micro and table
 prepCHPcombined <- function(chp_waves = 22:29, overwrite_chp = FALSE) {
 
   # prep microdata and tables
-  # chp_microdata <- prepCHPmicrodata(chp_waves = chp_waves, overwrite_chp = overwrite_chp)
+  chp_microdata <- prepCHPmicrodata(chp_waves = chp_waves, overwrite_chp = overwrite_chp)
   chp_tables <- prepCHPtables(chp_waves = chp_waves, overwrite_chp = overwrite_chp)
 
 
@@ -238,7 +241,7 @@ prepCHPcombined <- function(chp_waves = 22:29, overwrite_chp = FALSE) {
     )
 
   # check all rows are there
-  # chp_microdata_agg %>% group_by(pop) %>% summarize(n(), sum(n)) %>% print(n=100)
+  chp_microdata_agg %>% group_by(pop) %>% summarize(n(), sum(n)) %>% print(n=100)
 
   chp_microdata_agg <- chp_microdata_agg %>%
     # add these columns for merging with data from tables
@@ -272,22 +275,24 @@ prepCHPcombined <- function(chp_waves = 22:29, overwrite_chp = FALSE) {
 
   # compare tables and microdata ests -- check that numbers match to 3 decimals
   chp_comp <- full_join(
-    chp_tables %>% select(wave, pop, subgroup, demo,
-      pct_vaccinated_tab = pct_vaccinated,
-      pct_willing_tab = pct_willing,
-      pct_hesitant_tab = pct_hesitant,
-      pct_vaccinated_SE_tab = pct_vaccinated_se,
-      pct_willing_SE_tab = pct_willing_se,
-      pct_hesitant_SE_tab = pct_hesitant_se
-    ),
-    chp_microdata_agg %>% select(wave, pop, subgroup, demo,
-      pct_vaccinated_micro = pct_vaccinated,
-      pct_willing_micro = pct_willing,
-      pct_hesitant_micro = pct_hesitant,
-      pct_vaccinated_SE_micro = pct_vaccinated_se,
-      pct_willing_SE_micro = pct_willing_se,
-      pct_hesitant_SE_micro = pct_hesitant_se
-    ),
+    chp_tables %>%
+      select(wave, pop, subgroup, demo,
+             pct_vaccinated_tab = pct_vaccinated,
+             pct_willing_tab = pct_willing,
+             pct_hesitant_tab = pct_hesitant,
+             pct_vaccinated_SE_tab = pct_vaccinated_se,
+             pct_willing_SE_tab = pct_willing_se,
+             pct_hesitant_SE_tab = pct_hesitant_se
+      ),
+    chp_microdata_agg %>%
+      select(wave, pop, subgroup, demo,
+             pct_vaccinated_micro = pct_vaccinated,
+             pct_willing_micro = pct_willing,
+             pct_hesitant_micro = pct_hesitant,
+             pct_vaccinated_SE_micro = pct_vaccinated_se,
+             pct_willing_SE_micro = pct_willing_se,
+             pct_hesitant_SE_micro = pct_hesitant_se
+      ),
     by = c("wave", "pop", "subgroup", "demo")
   )
 
@@ -323,12 +328,26 @@ read_CHP_health_tbls <- function(t) {
   # get wave name
   wave_num <- as.numeric(gsub("health5_week|[.]xlsx", "", t))
 
-  # sheetnames (each is a state / 'US')
-  sheets <- c("US", state.abb, "DC")
+  # download
+  tmp <-  get_file_by_name(
+    filename = str_replace(t, "xlsx$", "tab"),
+    dataset = dvdoi,
+    original = TRUE)
+
+  dest_dir <- "data/census-household-pulse/tables"
+  writeBin(tmp, path(dest_dir, t))
+
+  t_se <- str_replace(t, "health5", "health5_se")
+  tmp <-  get_file_by_name(
+    filename = str_replace(t_se, "xlsx$", "tab"),
+    dataset = dvdoi,
+    original = TRUE)
+  writeBin(tmp, path(dest_dir, t_se))
 
   # iterate through sheets
-  tbl_est <- map_dfr(sheets, function(s) read_CHP_health(sh = s, tbl = t, type = "est", wv = wave_num))
-  tbl_se  <- map_dfr(sheets, function(s) read_CHP_health(sh = s, tbl = t, type = "se", wv = wave_num))
+  sheets <- c("US", state.abb, "DC")
+  tbl_est <- map_dfr(sheets, function(s) read_CHP_health(sh = s, tgt_tbl = path(dest_dir, t), wv = wave_num))
+  tbl_se  <- map_dfr(sheets, function(s) read_CHP_health(sh = s, tgt_tbl = path(dest_dir, t_se), wv = wave_num))
 
   bind_rows(
     tbl_est %>% mutate(type = "est"),
@@ -338,14 +357,8 @@ read_CHP_health_tbls <- function(t) {
 }
 
 #' Read sheets in a table
-read_CHP_health <- function(sh, tbl, type, wv) {
-
-  dest_dir <- file.path("data", "raw", "census-household-pulse", "tables")
-
-  if (type == "est")
-    tbl <- gsub("health5", "health5_se", tbl)
-
-  tmp <- suppressMessages(read_excel(path(dest_dir, tbl), skip = 3, sheet = sh, na = ""))
+read_CHP_health <- function(sh, tgt_tbl, wv) {
+  tmp <- suppressMessages(read_excel(tgt_tbl, sheet = sh, skip = 3, na = ""))
 
   # get colnames -- same in each file, pull from estimates
   colnames <- as.vector(apply(tmp, 2, function(c) {
@@ -360,7 +373,8 @@ read_CHP_health <- function(sh, tbl, type, wv) {
   # do remaining cleaning
   out <- tmp %>%
     slice(5:n()) %>%
-    mutate(demo = ifelse(is.na(Total), `Select characteristics`, NA), .before = `Select characteristics`) %>%
+    mutate(demo = ifelse(is.na(Total), `Select characteristics`, NA),
+           .before = `Select characteristics`) %>%
     fill(demo) %>%
     mutate(demo = ifelse(is.na(demo), "Total", demo),
            pop = sh,
