@@ -69,7 +69,7 @@ cleanIPSOSdata <- function() {
   cat("Writing offlineflag.rds")
   ax_coded %>%
     filter(!is.na(acsnet3)) %>% # custom offline flag
-    write_rds("data/axios_ipsos/axios-ipsos_offlineflag.rds")
+    write_rds("data/axios-ipsos/axios-ipsos_offlineflag.rds")
 }
 
 
