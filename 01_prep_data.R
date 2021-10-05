@@ -37,7 +37,7 @@ cleanFBdata()
 
 #### RUN CLEAN IPSOS-AXIOS ######
 cleanIPSOSdata()
-
+cleanIPSOStables()
 
 ######### PULL IN POLL DATA #########
 poll_vars <- c(
