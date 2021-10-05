@@ -1,34 +1,8 @@
-
-cleanFBdata <- function(download_fb = TRUE, overwrite_fb = FALSE) {
-
-  # download data
-  fb_data_dir <- file.path("data", "raw", "facebook-delphi")
-  file_list <- getFBdata(download_fb = download_fb,
-                         overwrite_fb = overwrite_fb,
-                         fb_data_dir = fb_data_dir)
-
-  # combine select variables from all waves
-  fb_vars <- c(
-    "region", "survey_geo",
-    "val_pct_vaccinated", "se_pct_vaccinated", "sample_size_pct_vaccinated", "represented_pct_vaccinated"
-    # , 'val_pct_received_2_vaccine_doses', 'se_pct_received_2_vaccine_doses', 'sample_size_pct_received_2_vaccine_doses', 'represented_pct_received_2_vaccine_doses'
-    , "val_pct_accept_vaccine", "se_pct_accept_vaccine", "sample_size_pct_accept_vaccine", "represented_pct_accept_vaccine",
-    "val_pct_vaccinated_or_accept", "se_pct_vaccinated_or_accept", "sample_pct_vaccinated_or_accept", "represented_pct_vaccinated_or_accept",
-    "val_pct_hesitant_vaccine", "se_pct_hesitant_vaccine", "sample_size_pct_hesitant_vaccine", "represented_pct_hesitant_vaccine"
-    # , 'val_pct_accept_vaccine_defyes', 'se_pct_accept_vaccine_defyes', 'sample_size_pct_accept_vaccine_defyes', 'represented_pct_accept_vaccine_defyes'
-    # , 'val_pct_accept_vaccine_probyes', 'se_pct_accept_vaccine_probyes', 'sample_size_pct_accept_vaccine_probyes', 'represented_pct_accept_vaccine_probyes'
-    # , 'val_pct_accept_vaccine_probno', 'se_pct_accept_vaccine_probno', 'sample_size_pct_accept_vaccine_probno', 'represented_pct_accept_vaccine_probno'
-    # , 'val_pct_accept_vaccine_defno', 'se_pct_accept_vaccine_defno', 'sample_size_pct_accept_vaccine_defno', 'represented_pct_accept_vaccine_defno'
-  )
-  fbdata <- rbindlist(lapply(c(file_list$natl_files, file_list$state_files), function(f) {
-    wave <- gsub("_weekly_nation_overall.csv|_weekly_state_overall.csv", "", f)
-    temp <- fread(file.path(fb_data_dir, f), select = fb_vars)
-    temp$wave <- wave
-    temp
-  }), fill = TRUE)
+#' Clean from stacked source
+cleanFBdata <- function(datapath = "data/facebook/weekly_overall.csv") {
 
   # basic cleaning
-  fbdata <- fbdata %>%
+  fbdata <- read_csv(datapath) %>%
     mutate(
       mode = "facebook",
       source = "fb_api",
@@ -55,7 +29,7 @@ cleanFBdata <- function(download_fb = TRUE, overwrite_fb = FALSE) {
 
 
   # load deffs from CMU
-  fb_deff <- fread(file.path(fb_data_dir, "deff.csv")) %>%
+  fb_deff <- get_dataframe_by_name("deff.tab", dvdoi, original = TRUE, .f = read_csv) %>%
     mutate(pop = "US") %>%
     filter(epiyear == 2021)
 
@@ -70,14 +44,70 @@ cleanFBdata <- function(download_fb = TRUE, overwrite_fb = FALSE) {
     mutate(deff = ifelse(pop == "US" & is.na(deff), fb_deff_mean, deff))
 
 
-
   write.csv(fbdata, file.path("data", "final", "fb_cleaned.csv"))
 }
 
 
+#' All fb paths
+#'
+#' Data on dataverse
+FB_dates <- c("20210103_20210109", "20210110_20210116", "20210117_20210123",
+              "20210124_20210130", "20210131_20210206", "20210207_20210213",
+              "20210214_20210220", "20210221_20210227", "20210228_20210306",
+              "20210307_20210313", "20210314_20210320", "20210321_20210327",
+              "20210328_20210403", "20210404_20210410", "20210411_20210417",
+              "20210418_20210424", "20210425_20210501", "20210502_20210508",
+              "20210509_20210515", "20210516_20210522", "20210523_20210529",
+              "20210530_20210605", "20210606_20210612", "20210613_20210619",
+              "20210620_20210626", "20210627_20210703", "20210704_20210710",
+              "20210711_20210717", "20210718_20210724", "20210725_20210731",
+              "20210801_20210807", "20210808_20210814", "20210815_20210821",
+              "20210822_20210828", "20210829_20210904", "20210905_20210911",
+              "20210912_20210918", "20210919_20210925")
+
+FB_files <- c(str_c(FB_dates, "_weekly_state_overall.csv"),
+              str_c(FB_dates, "_weekly_nation_overall.csv"))
+
+
+
+
+#' Get individual files (either locally or from dataverse), then stack
+#'
+getFBdata_from_raw <- function(paths = FB_files) {
+  fb_vars <- c(
+    "region", "survey_geo",
+    "val_pct_vaccinated", "se_pct_vaccinated", "sample_size_pct_vaccinated", "represented_pct_vaccinated",
+    "val_pct_accept_vaccine", "se_pct_accept_vaccine", "sample_size_pct_accept_vaccine", "represented_pct_accept_vaccine",
+    "val_pct_vaccinated_or_accept", "se_pct_vaccinated_or_accept", "sample_pct_vaccinated_or_accept", "represented_pct_vaccinated_or_accept",
+    "val_pct_hesitant_vaccine", "se_pct_hesitant_vaccine", "sample_size_pct_hesitant_vaccine", "represented_pct_hesitant_vaccine"
+    # , 'val_pct_received_2_vaccine_doses', 'se_pct_received_2_vaccine_doses', 'sample_size_pct_received_2_vaccine_doses', 'represented_pct_received_2_vaccine_doses'
+    # , 'val_pct_accept_vaccine_defyes', 'se_pct_accept_vaccine_defyes', 'sample_size_pct_accept_vaccine_defyes', 'represented_pct_accept_vaccine_defyes'
+    # , 'val_pct_accept_vaccine_probyes', 'se_pct_accept_vaccine_probyes', 'sample_size_pct_accept_vaccine_probyes', 'represented_pct_accept_vaccine_probyes'
+    # , 'val_pct_accept_vaccine_probno', 'se_pct_accept_vaccine_probno', 'sample_size_pct_accept_vaccine_probno', 'represented_pct_accept_vaccine_probno'
+    # , 'val_pct_accept_vaccine_defno', 'se_pct_accept_vaccine_defno', 'sample_size_pct_accept_vaccine_defno', 'represented_pct_accept_vaccine_defno'
+  )
+
+  # download from Dataverse  https://doi.org/10.7910/DVN/GKBUUK if recreating
+
+  fbdata <- rbindlist(
+    lapply(
+      FB_files,
+      FUN = function(f) {
+        wave <- gsub("_weekly_nation_overall.csv|_weekly_state_overall.csv", "", f)
+        temp <- fread(file.path(fb_data_dir, f), select = fb_vars)
+        temp$wave <- wave
+        temp
+      }),
+    fill = TRUE)
+
+
+  write_csv(fbdata, "data/facebook/weekly_overall.csv")
+}
+
 
 #' If trying to download from API, use this
-getFBdata <- function(download_fb = TRUE, overwrite_fb = FALSE, fb_data_dir) {
+#' e.g. `getFBdataAPI("data/raw/facebook-delphi")`
+getFBdataAPI <- function(download_fb = TRUE, overwrite_fb = FALSE, fb_data_dir) {
   base_url <- "https://www.cmu.edu/delphi-web/surveys/weekly/"
 
   if (!dir.exists(fb_data_dir)) {
