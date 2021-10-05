@@ -7,8 +7,10 @@ pkg.list <- c(
   "purrr",
   "fs",
   "readr",
+  "stringr",
   # data reading
   "dataverse",
+  "haven",
   "curl",
   "readxl",
   "data.table",
