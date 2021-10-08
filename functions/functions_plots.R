@@ -56,7 +56,10 @@ plot_with_errorbands = function(data, outcome
 
 #### helper function for Fig 1
 # makes all the inner plots
-plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', labels = NULL, title = NULL, annotate_df = NULL){
+plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb'
+                            , labels = NULL, title = NULL, annotate_df = NULL
+                            , plot_min = NULL, plot_max = NULL
+                            ){
 
   if (type == 'est') {
     x_name = if(x == 'hp') 'household_pulse' else if(x == 'fb') 'facebook' else 'pop'
@@ -68,15 +71,16 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
     data_min = data %>% select(x_est, y_est) %>% min()
     data_max = data %>% select(x_est, y_est) %>% max()
 
-    if(x == 'pop' & type == 'est'){
-      plot_min = 0.3
-      plot_max = 0.75
-    }else{
-      plot_min = data_min - 0.02*(data_max - data_min)
-      plot_max = data_max + 0.02*(data_max - data_min)
+
+    if(!is.null(plot_min)){
+      data_min = plot_min
+    }
+    if(!is.null(plot_max)){
+      data_max = plot_max
     }
 
-
+    plot_min = data_min - 0.02*(data_max - data_min)
+    plot_max = data_max + 0.02*(data_max - data_min)
 
     cat(paste0('average difference:\n', y_name,ifelse(mean_diff > 0, '+', ''), round(mean_diff*100, 2), 'pp\nx = ', 0.75 * plot_max,'y = ', 0.1 * plot_min, '\n'))
 
@@ -173,9 +177,15 @@ makeCompPlot <- function(df, show_states, labels){
     , list(x = 'hp', y = 'fb', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
   )
 
+  # get plot limits so they match
+  lims = c(df %>% pull(pct_vaccinated_household_pulse),
+           df %>% pull(pct_vaccinated_facebook),
+           df %>% pull(pct_vaccinated_pop) )
+  cat(min(lims), '\n')
+  cat(max(lims), '\n')
   combos_bottom = list(
-    list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'est')
-    , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'est')
+    list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'est', plot_max = lims %>% max(), plot_min = lims %>% min())
+    , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'est', plot_max = lims %>% max(), plot_min = lims %>% min())
     , list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
     , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
   )
@@ -235,7 +245,10 @@ makeCompPlot <- function(df, show_states, labels){
                      , y = c$y
                      , type = c$type
                      , labels = labels
-                     , annotate_df = c$annotate_df)
+                     , annotate_df = c$annotate_df
+                     , plot_max = c$plot_max
+                     , plot_min = c$plot_min
+                     )
   })
 
   # combine and add panel names
