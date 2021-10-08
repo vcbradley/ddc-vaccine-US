@@ -6,17 +6,17 @@ source('functions/functions_plots.R')
 benchmark_version = '2021-05-26'
 
 # survey dates
-# which_waves <- list(facebook = '2021-03-27'
-#                     , household_pulse = '2021-03-29'
-#                     , ipsos_axios = '2021-03-22'
-#                     , benchmark = '2021-03-31'   # end of max wave plus 5 days for reporting lag
-# )
-
-which_waves <- list(facebook = '2021-05-08'
-                    , household_pulse = '2021-05-10'
-                    , ipsos_axios = '2021-05-10'
-                    , benchmark = '2021-05-15'   # end of max wave plus 5 days for reporting lag
+which_waves <- list(facebook = '2021-03-27'
+                    , household_pulse = '2021-03-29'
+                    , ipsos_axios = '2021-03-22'
+                    , benchmark = '2021-03-31'   # end of max wave plus 5 days for reporting lag
 )
+
+# which_waves <- list(facebook = '2021-05-08'
+#                     , household_pulse = '2021-05-10'
+#                     #, ipsos_axios = '2021-05-10'
+#                     , benchmark = '2021-05-15'   # end of max wave plus 5 days for reporting lag
+# )
 
 
 ######### BENCHMARK DATA ###########
@@ -104,5 +104,9 @@ fig.lab = glue("Waves used: CDC {format(as.Date(which_waves$benchmark), format =
 plot_comp_annotated <- plot_comp + plot_annotation(caption = fig.lab)
 
 # save
-ggsave(plot_comp_annotated, filename = glue('plots/fig_which_to_trust_{as.Date(which_waves$benchmark)}.png'), height = 12, width = 10)
+ggsave(plot_comp_annotated
+       , filename = glue('plots/fig_which_to_trust_{as.Date(which_waves$benchmark)}.jpeg')
+       , height = 24 * 1.25
+       , width = 18 * 1.25
+       , units = 'cm')
 
