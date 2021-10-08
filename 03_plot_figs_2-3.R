@@ -304,8 +304,8 @@ fig3_4panel <- ggarrange(fig3_pl[["panelA_error"]],
                          align = "hv"
 )
 ggsave(fig3_4panel,
-       filename = file.path("plots", "fig3_4panel.png"),
-       device = "png",
+       filename = file.path("plots", "fig3_4panel.pdf"),
+       device = "pdf",
        width = 8,
        height = 7,
        units = "in"
@@ -325,8 +325,8 @@ fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
   align = "hv"
 )
 ggsave(fig3_6panel,
-  filename = file.path("plots", "fig3_6panel.png"),
-  device = "png",
+  filename = file.path("plots", "fig3_6panel.pdf"),
+  device = "pdf",
   width = 11,
   height = 5,
   units = "in"
