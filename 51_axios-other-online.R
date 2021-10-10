@@ -151,5 +151,5 @@ vax_df <- left_join(
                 vax = pct_pop_vaccinated)
   )
 
-write_csv(vax_df, "small-polls_toplines.csv")
+write_csv(vax_df, "data/small-polls_toplines.csv")
 

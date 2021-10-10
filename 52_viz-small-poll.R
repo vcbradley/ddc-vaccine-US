@@ -6,7 +6,7 @@ library(scales)
 library(wacolors)
 
 
-toplines <- read_csv("small-polls_toplines.csv")
+toplines <- read_csv("data/small-polls_toplines.csv")
 
 bench <- toplines %>%
   filter(pollster == "CDC") %>%
