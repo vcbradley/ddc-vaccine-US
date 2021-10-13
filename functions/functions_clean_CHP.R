@@ -1,5 +1,3 @@
-library(stringr)
-
 # Functions to prep CHP data
 
 prepCHPmicrodata <- function(chp_waves = 22:29,

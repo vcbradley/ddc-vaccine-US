@@ -1,5 +1,3 @@
-library(haven)
-
 #' Custom code for stacking Axios sav
 read_ax_drop <- function(x) {
   haven::read_sav(x) %>%
