@@ -171,7 +171,7 @@ fig3_pl[["panelA_error"]] <- plot_with_errorbands(
 )
 
 fig3_pl[["panelA_error"]] <- fig3_pl[["panelA_error"]] +
-  geom_hline(yintercept = 0, lty = 2) +
+  geom_hline(yintercept = 0, lty = 2, alpha = 0.5) +
   xdate_m2 +
   labs(y = expression(bar(Y)[n] - bar(Y)[N]))
 
@@ -237,7 +237,7 @@ fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
 )
 
 fig3_pl[["panelD_ddc"]] <- fig3_pl[["panelD_ddc"]] +
-  geom_hline(yintercept = 0, lty = 2) +
+  geom_hline(yintercept = 0, lty = 2, alpha = 0.5) +
   xdate_m2 +
   labs(y = expression(hat(rho)[list(R, Y)]))
 
@@ -288,20 +288,20 @@ fig3_pl[["panelG_neff_all"]] <-
     title = NULL,
     use_ribbons = c('5pct')
   ) +
-  scale_y_log10(labels = comma) +
+  scale_y_log10(labels = comma_format(accuracy = 1)) +
   xdate_m +
   theme_pubclean() +
-  expand_limits(y = 5) +
   # facet_wrap(~ study_name) +
   # guides(color = FALSE) +
   scale_x_date(
     labels = function(x) recode(format(as.Date(x), "%b"), "May" = "May 2021"),
     breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
     limits = c(as.Date("2021-01-01"), as.Date("2021-05-20"))) +
+  scale_color_manual(values = scale_values) +
   theme(axis.line = element_line(),
-        axis.text = element_text(color = "black"),
+        axis.text = element_text(color = "gray10"),
         legend.position = "right") +
-  labs(color = NULL)
+  labs(color = NULL, shape = NULL)
 
 
 
