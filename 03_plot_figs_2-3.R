@@ -65,11 +65,11 @@ xdate_m2 <- scale_x_date(
 plt_annotate <- tibble(
   study_name = c("CDC (benchmark)", "Delphi-Facebook", "Axios-Ipsos", "Census Household Pulse"),
   x = c(as.Date("2021-05-13"), as.Date("2021-05-17"), as.Date("2021-05-15"), as.Date("2021-05-12")),
-  y = c(0.58, 0.78, 0.645, 0.72),
+  y = c(0.60, 0.78, 0.66, 0.72),
   n = c("", "250,000", "1000", "75,000")
 ) %>%
   mutate(plt_lbl = glue("'{study_name}'~~(n%~~%'{n}')"),
-         plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "CDC (benchmark)"))
+         plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "'CDC'~~'(benchmark)'"))
 
 
 
@@ -77,6 +77,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
   # benchmark line
   geom_line(data = benchmark,
             size = 1.5,
+            alpha = 0.6,
             aes(x = as.Date(date),
                 y = pct_pop_vaccinated,
                 color = 'CDC (benchmark)')) +
@@ -136,7 +137,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
   scale_shape_manual(values = shape_values) +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
-                     breaks = seq(0, 0.8, 0.1),
+                     breaks = seq(0, 0.8, 0.2),
                      expand = expansion(mult = c(0, 0.01))) +
   xdate_m +
   coord_cartesian(clip = "off") +
@@ -183,7 +184,7 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   labs(x = NULL, y = expression(sigma[Y]),
        color = "Study",
        shape = "Study",
-       title = "Inherent problem difficulty") +
+       title = "Inherent\nproblem difficulty") +
   scale_color_manual(values = scale_values) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
@@ -299,7 +300,7 @@ fig3_pl[["panelG_neff_all"]] <-
     limits = c(as.Date("2021-01-01"), as.Date("2021-05-20"))) +
   scale_color_manual(values = scale_values) +
   theme(axis.line = element_line(),
-        axis.text = element_text(color = "gray10"),
+        axis.text = element_text(color = "gray20"),
         legend.position = "right") +
   labs(color = NULL, shape = NULL)
 
@@ -322,7 +323,7 @@ layout =
   plot_annotation(tag_levels = "a") &
   theme(legend.position = "bottom",
         plot.title = element_text(size = 10, face = "bold"),
-        # axis.text = element_text(size = 8),
+        axis.text = element_text(color = "gray20"),
         plot.tag = element_text(face = 'bold'))
 
 ggsave("plots/fig1_topline.pdf",
