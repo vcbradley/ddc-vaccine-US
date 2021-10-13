@@ -11,8 +11,8 @@ xdate_m2 <- scale_x_date(
   limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
 
-# data ----
-toplines <- read_csv("small-polls_toplines.csv")
+
+toplines <- read_csv("data/small-polls_toplines.csv")
 
 bench <- toplines %>%
   filter(pollster == "CDC") %>%

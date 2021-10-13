@@ -25,7 +25,7 @@ bench_path <- path('data', 'final', glue('benchmark_{benchmark_version}.csv'))
 benchmark <- map_dfr(bench_path, ~ fread(.x)) %>%
   filter(state != 'US', !is.na(pct_pop_vaccinated)) %>%
   group_by(date) %>%
-  mutate(pop_rank_vaccinated = frank(-pct_pop_vaccinated))
+  mutate(rank_vaccinated_pop = frank(-pct_pop_vaccinated))
 
 
 
@@ -36,11 +36,13 @@ all_polls <- fread(file.path('data', 'final', 'all_polls_all_vars.csv.gz'))
 
 all_polls_sel <- all_polls %>%
   filter(pct_error == 0, pop != 'US') %>%
-  # choose the polls we want to use -- lastest overlapping interval
+  # choose the polls we want to use -- latest overlapping interval
   filter((mode == 'facebook' & end_date == which_waves$facebook)
          | (mode == 'household_pulse' & end_date == which_waves$household_pulse)
-         | (mode == 'ipsos_axios' & end_date == which_waves$ipsos_axios)
+        # | (mode == 'ipsos_axios' & end_date == which_waves$ipsos_axios)
          )
+
+
 
 
 # pivot and join on benchmark data
@@ -49,50 +51,37 @@ bench_sel <- benchmark %>%
   filter(date == as.Date(which_waves$benchmark))  %>%
   select(pop = state
          , pct_vaccinated_pop = pct_pop_vaccinated
-         , pop_rank_vaccinated)
+         , rank_vaccinated_pop)
 
 all_polls_plt <- all_polls_sel %>%
-  pivot_wider(id_cols = c('pop'),
-              values_from = c('pct_vaccinated', 'pct_hesitant', 'pct_willing'),
-              names_from = c('mode')
+  filter(pct_error == 0, pop != 'US') %>%
+  group_by(end_date, mode) %>%
+  mutate(rank_vaccinated = frank(-pct_vaccinated)
+         , rank_hesitant = frank(-pct_hesitant)
+         , rank_willing = frank(-pct_willing)
+  )  %>% pivot_wider(id_cols = c('pop'),
+                values_from = c('pct_vaccinated', 'pct_hesitant', 'pct_willing', 'rank_vaccinated', 'rank_hesitant', 'rank_willing'),
+                names_from = c('mode')
   ) %>%
   left_join(bench_sel, by = c('pop')) %>%
-  mutate(pop_fac = fct_reorder(pop, pop_rank_vaccinated, .desc = TRUE))
+  mutate(pop_fac = fct_reorder(pop, rank_vaccinated_pop, .desc = TRUE))
 
 
-
-######## CALC DIFFS ##########
-outcomes = c('vaccinated', 'hesitant', 'willing')
-
-# calc differences
-biggest_diffs = list()
-biggest_rank_diffs = list()
-
-for (m in outcomes) {
-
-  all_polls_plt <- all_polls_plt %>%
-    mutate('diff_{m}' := get(glue('pct_{m}_facebook')) - get(glue('pct_{m}_household_pulse'))) %>%
-    arrange(desc(get(glue('pct_{m}_facebook')))) %>%
-    mutate('fb_rank_{m}' := 1:n()) %>%
-    arrange(desc(get(glue('pct_{m}_household_pulse')))) %>%
-    mutate('hp_rank_{m}' := 1:n()) %>%
-    mutate('rank_diff_{m}' := get(glue('fb_rank_{m}')) - get(glue('hp_rank_{m}')))
-
-  biggest_diffs[[m]] <- all_polls_plt %>% arrange(abs(get(glue('diff_{m}'))), decreasing = T) %>% slice(1:5)
-  biggest_rank_diffs[[m]] <- all_polls_plt %>% arrange(abs(get(glue('rank_diff_{m}'))), decreasing = T) %>% slice(1:5)
-}
 
 # check ranking is working correctly
 ggplot(all_polls_plt) +
-  geom_point(aes(x= pct_vaccinated_facebook, y = fb_rank_vaccinated)) +
-  geom_point(aes(x= pct_vaccinated_household_pulse, y = hp_rank_vaccinated)) +
-  geom_point(aes(x= pct_vaccinated_pop, y = pop_rank_vaccinated))
+  geom_point(aes(x= pct_vaccinated_facebook, y = rank_vaccinated_facebook), color = 'blue') +
+  geom_point(aes(x= pct_vaccinated_household_pulse, y = rank_vaccinated_household_pulse), color = 'green') +
+  geom_point(aes(x= pct_vaccinated_pop, y = rank_vaccinated_pop), color = 'gray')
 
 
 ############# MAKE PLOTS ###########
 
 # which states to annotate in each panel
 show_states = c('MO', 'IN', 'MA')
+all_polls_plt %>%
+  filter(pop %in% show_states) %>%
+  select(pop, date, rank_vaccinated_pop, rank_vaccinated_household_pulse, rank_vaccinated_facebook)
 
 #labels
 labels = list(fb = 'Delphi-Facebook', hp = 'Census Household Pulse', pop = 'CDC')
@@ -100,9 +89,37 @@ labels = list(fb = 'Delphi-Facebook', hp = 'Census Household Pulse', pop = 'CDC'
 # make plot
 plot_comp = makeCompPlot(df = all_polls_plt, show_states = show_states, labels = labels)
 
-fig.lab = glue("Waves used: CDC {format(as.Date(which_waves$benchmark), format =  '%m/%d/%Y')}, Facebook-Delphi {format(as.Date(which_waves$facebook), format =  '%m/%d/%Y')}, Census Household Pulse {format(as.Date(which_waves$household_pulse), format =  '%m/%d/%Y')}, Axios-Ipsos {format(as.Date(which_waves$ipsos_axios), format = '%m/%d/%Y')}")
+fig.lab = glue("Waves used: CDC {format(as.Date(which_waves$benchmark), format =  '%m/%d/%Y')}, Facebook-Delphi {format(as.Date(which_waves$facebook), format =  '%m/%d/%Y')}, Census Household Pulse {format(as.Date(which_waves$household_pulse), format =  '%m/%d/%Y')}")
 plot_comp_annotated <- plot_comp + plot_annotation(caption = fig.lab)
 
 # save
-ggsave(plot_comp_annotated, filename = glue('plots/fig_which_to_trust_{as.Date(which_waves$benchmark)}.png'), height = 12, width = 10)
+ggsave(plot_comp_annotated
+       , filename = glue('plots/fig_which_to_trust_{as.Date(which_waves$benchmark)}.jpeg')
+       , height = 24 * 1.25
+       , width = 18 * 1.25
+       , units = 'cm')
+
+
+## rank correlations
+all_polls_plt %>%
+  summarise(cor_rank_vaccinated = cor(pct_vaccinated_facebook, pct_vaccinated_household_pulse, method = 'kendall')
+          , cor_rank_hesitant = cor(pct_hesitant_facebook, pct_hesitant_household_pulse, method = 'kendall')
+          , cor_rank_willing = cor(pct_willing_facebook, pct_willing_household_pulse, method = 'kendall')
+          , cor_rank_vaccinated_fb_pop = cor(pct_vaccinated_facebook, pct_vaccinated_pop, method = 'kendall')
+          , cor_rank_vaccinated_hp_pop = cor(pct_vaccinated_household_pulse, pct_vaccinated_pop, method = 'kendall')
+            )
+
+
+# ma rank over time
+all_polls_ranked <- all_polls %>%
+  filter(pop != 'US', pct_error == 0) %>%
+  group_by(end_date, mode) %>%
+  mutate(rank_vaccinated = frank(-pct_vaccinated))
+
+ggplot(all_polls_ranked %>% filter(pop == 'MA'), aes(x = end_date, y = rank_vaccinated, color = study_name)) +
+  geom_line() +
+  scale_color_manual(values = scale_values) +
+  theme_pubclean() +
+  labs(x = 2021, y = 'Vaccinated rank'
+       , title = 'MA rank over time')
 
