@@ -7,7 +7,10 @@ pkg.list <- c(
   "purrr",
   "fs",
   "readr",
+  "stringr",
   # data reading
+  "dataverse",
+  "haven",
   "curl",
   "readxl",
   "data.table",
@@ -43,3 +46,7 @@ scale_values <- c(
   "Census Household Pulse" = "#69913b", # green
   "Axios-Ipsos" = "#cf7a30" # orange
 )
+
+# dataverse path
+dvdoi <- "10.7910/DVN/GKBUUK"
+Sys.setenv("DATAVERSE_SERVER" = "dataverse.harvard.edu")
