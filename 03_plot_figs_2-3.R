@@ -75,11 +75,16 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
                 y = pct_pop_vaccinated,
                 color = 'CDC (benchmark)')) +
   geom_pointline(
-    aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name)
+    aes(x = as.Date(end_date),
+        y = pct_vaccinated,
+        color = study_name,
+        shape = study_name)
     , position = position_dodge(0.008 * 365)
     , size = 2) +
   geom_pointrange(
-    aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5, color = study_name)
+    aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5,
+        color = study_name,
+        shape = study_name)
     , position = position_dodge(0.008 * 365)
     , fatten = 2
     , show.legend = FALSE) +
@@ -154,6 +159,7 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   theme_pubr() +
   labs(x = NULL, y = expression(sigma[Y]),
        color = "Study",
+       shape = "Study",
        title = "Problem difficulty") +
   scale_color_manual(values = scale_values) +
   expand_limits(y = 0) +
@@ -188,7 +194,7 @@ fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "DO_sqrt",
   include_legend = TRUE,
-  title = "Data quantity index",
+  title = "Data scarcity",
   use_ribbons = NULL,
   xlim_val = xlims
 ) +
@@ -283,11 +289,11 @@ layout =
   "AABC
  AADE"
 
-(plot_fig2 +  guides(color = FALSE)) +
+(plot_fig2 +  guides(color = FALSE, shape = FALSE)) +
   fig3_pl[["panelA_error"]] +
-  (fig3_pl[["panelB_sdG"]] + guides(color = FALSE)) +
-  fig3_pl[["panelC_DO"]] +
   fig3_pl[["panelD_ddc"]] +
+  fig3_pl[["panelC_DO"]] +
+  (fig3_pl[["panelB_sdG"]] + guides(color = FALSE)) +
   plot_layout(design = layout,
               guides = "collect") +
   plot_annotation(tag_levels = "a") &
@@ -304,7 +310,7 @@ ggsave("plots/fig1_topline.pdf",
 
 ## New Fig. 2 ----
 ggsave("plots/fig2_n-eff.pdf",
-       fig3_pl[["panelG_neff_all"]],
+       fig3_pl[["panelG_neff_all"]] + labs(shape = NULL),
        w = 9*1.5,
        h = 5*1.5,
        units = "cm")
