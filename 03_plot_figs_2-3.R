@@ -55,6 +55,11 @@ xdate_m <- scale_x_date(
   breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
   limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
+xdate_m2 <- scale_x_date(
+  labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan '21"),
+  breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
+  limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
+
 
 ######### PLOT FIG 2 - ESTIMATES OVER TIME ###########
 plt_annotate <- tibble(
@@ -75,20 +80,25 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
                 y = pct_pop_vaccinated,
                 color = 'CDC (benchmark)')) +
   geom_pointline(
-    aes(x = as.Date(end_date), y = pct_vaccinated, color = study_name)
-    , position = position_dodge(0.008 * 365)
-    , size = 2) +
+    aes(x = as.Date(end_date),
+        y = pct_vaccinated,
+        color = study_name,
+        shape = study_name),
+    position = position_dodge(0.008 * 365),
+    size = 2) +
   geom_pointrange(
-    aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5, color = study_name)
-    , position = position_dodge(0.008 * 365)
-    , fatten = 2
-    , show.legend = FALSE) +
+    aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5,
+        color = study_name,
+        shape = study_name),
+    position = position_dodge(0.008 * 365),
+    fatten = 2,
+    show.legend = FALSE) +
   theme_pubr() +
   geom_text(
     data = plt_annotate,
     aes(x = as.Date("2021-01-01"),
-        hjust = 0.1,
         y = y,
+        hjust = 0.1,
         label = plt_lbl,
         color = study_name),
     nudge_x = 1,
@@ -98,13 +108,26 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     size = 3,
     show.legend = FALSE
   ) +
-  theme(legend.position = 'none'
-        , plot.margin = unit(rep(0, 4), "lines")
-        , text = element_text(size = 10)
-        , axis.title = element_text(size = 12)
-        , axis.text = element_text(size = 12)
+  geom_point(
+    data = plt_annotate %>% filter(study_name != "CDC (benchmark)"),
+    aes(shape = study_name,
+        color = study_name,
+        y = y),
+    x = as.Date("2020-12-30"),
+    hjust = 0,
+    inherit.aes = FALSE,
+    show.legend = FALSE
   ) +
-  labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
+  theme(legend.position = 'none',
+        plot.margin = unit(rep(0, 4), "lines"),
+        text = element_text(size = 10),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
+  ) +
+  labs(x = NULL,
+       y = '% Vaccinated (at least 1 dose)',
+       color = FALSE,
+       title = "Estimates of Vaccination Uptake") +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
                      breaks = seq(0, 0.8, 0.1),
@@ -114,7 +137,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
   geom_hline(yintercept = 0.5, lty = 2, alpha = 0.5) +
   expand_limits(y = 0.8)
 # annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
-
+plot_fig2
 
 ggsave(plot_fig2
        , filename = file.path('plots', 'fig2.png')
@@ -122,7 +145,6 @@ ggsave(plot_fig2
        , width = plot_width
        , height = plot_height
        , units = 'in')
-
 
 
 
@@ -138,13 +160,13 @@ fig3_pl[["panelA_error"]] <- plot_with_errorbands(
   outcome = "error",
   ylab = "Error",
   include_legend = TRUE,
-  title = "Actual error",
+  title = "Total error",
   xlim_val = xlims
 )
 
 fig3_pl[["panelA_error"]] <- fig3_pl[["panelA_error"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m +
+  xdate_m2 +
   labs(y = expression(bar(Y)[n] - bar(Y)[N]))
 
 
@@ -154,15 +176,16 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   theme_pubr() +
   labs(x = NULL, y = expression(sigma[Y]),
        color = "Study",
-       title = "Problem difficulty") +
+       shape = "Study",
+       title = "Inherent problem difficulty") +
   scale_color_manual(values = scale_values) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
-  xdate_m +
+  xdate_m2 +
   annotate(geom = "text",
            color = "darkgray",
            x = as.Date("2021-04-13"),
-           y = 0.32,
+           y = 0.35,
            size = 2.5,
            label = "CDC (benchmark)") +
   theme(axis.title = element_text(size = 8),
@@ -181,21 +204,21 @@ fig3_pl[["panelC_f"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelC_f"]] <- fig3_pl[["panelC_f"]] +
   scale_y_continuous(labels = scales::percent) +
-  xdate_m
+  xdate_m2
 
 ## panel D - dropout odds
 fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   data = all_polls_plt_wide,
   outcome = "DO_sqrt",
   include_legend = TRUE,
-  title = "Data quantity index",
+  title = "Data scarcity",
   use_ribbons = NULL,
   xlim_val = xlims
 ) +
   labs(y = expression(sqrt((N-n)/N))) +
-  xdate_m +
+  xdate_m2 +
   expand_limits(y = 0) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.01)))
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
 
 ## panel D - ddc
 fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
@@ -203,13 +226,13 @@ fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
   outcome = "ddc_weighted",
   ylab = "ddc",
   include_legend = TRUE,
-  title = "Data defect correlation\n(ddc)",
+  title = "Data quality defect\n(data defect correlation)",
   xlim_val = xlims
 )
 
 fig3_pl[["panelD_ddc"]] <- fig3_pl[["panelD_ddc"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m +
+  xdate_m2 +
   labs(y = expression(hat(rho)[list(R, Y)]))
 
 
@@ -225,7 +248,7 @@ fig3_pl[["panelE_neff_fb"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelE_neff_fb"]] <- fig3_pl[["panelE_neff_fb"]] +
   scale_y_continuous(expand = c(0, 0)) +
-  xdate_m
+  xdate_m2
 
 ## panel F - effective sample size, Census Household Pulse
 fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
@@ -238,7 +261,7 @@ fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] +
   scale_y_continuous(expand = c(0, 0)) +
-  xdate_m
+  xdate_m2
 
 # E and F together
 fig3_pl[["panelG_neff_all"]] <-
@@ -283,11 +306,11 @@ layout =
   "AABC
  AADE"
 
-(plot_fig2 +  guides(color = FALSE)) +
+(plot_fig2 +  guides(color = FALSE, shape = FALSE)) +
   fig3_pl[["panelA_error"]] +
-  (fig3_pl[["panelB_sdG"]] + guides(color = FALSE)) +
-  fig3_pl[["panelC_DO"]] +
   fig3_pl[["panelD_ddc"]] +
+  fig3_pl[["panelC_DO"]] +
+  (fig3_pl[["panelB_sdG"]] + guides(color = FALSE)) +
   plot_layout(design = layout,
               guides = "collect") +
   plot_annotation(tag_levels = "a") &
@@ -304,7 +327,7 @@ ggsave("plots/fig1_topline.pdf",
 
 ## New Fig. 2 ----
 ggsave("plots/fig2_n-eff.pdf",
-       fig3_pl[["panelG_neff_all"]],
+       fig3_pl[["panelG_neff_all"]] + labs(shape = NULL),
        w = 9*1.5,
        h = 5*1.5,
        units = "cm")
