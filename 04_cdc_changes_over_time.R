@@ -81,7 +81,7 @@ cdc_snapshots_subset %>%
   )
 
 # save
-ggsave('plots/fig_benchmark_change.png', width = 5, height = 2.5, units = 'in')
+ggsave('plots/fig_benchmark_change.pdf', width = 5, height = 2.5, units = 'in')
 
 
 

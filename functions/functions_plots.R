@@ -13,7 +13,10 @@ plot_with_errorbands = function(data, outcome
     theme_pubr() +
     scale_color_manual(values = scale_values) +
     scale_fill_manual(values = scale_values, guide = 'none') +
-    labs(x = NULL, color = 'Study')
+    labs(x = NULL, color = 'Study') +
+    theme(axis.title = element_text(size = 8),
+          axis.text = element_text(size = 8),
+          plot.margin = unit(rep(0, 4), "lines"))
 
   if(!include_legend){
     plt = plt + theme(legend.position = 'none')
@@ -56,7 +59,10 @@ plot_with_errorbands = function(data, outcome
 
 #### helper function for Fig 1
 # makes all the inner plots
-plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', labels = NULL, title = NULL, annotate_df = NULL){
+plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb'
+                            , labels = NULL, title = NULL, annotate_df = NULL
+                            , plot_min = NULL, plot_max = NULL
+                            ){
 
   if (type == 'est') {
     x_name = if(x == 'hp') 'household_pulse' else if(x == 'fb') 'facebook' else 'pop'
@@ -68,11 +74,21 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
     data_min = data %>% select(x_est, y_est) %>% min()
     data_max = data %>% select(x_est, y_est) %>% max()
 
-    plot_min = data_min - 0.02*(data_max - data_min)
-    plot_max = data_max + 0.02*(data_max - data_min)
 
+    if(!is.null(plot_min)){
+      data_min = plot_min
+    }
+    if(!is.null(plot_max)){
+      data_max = plot_max
+    }
+
+    plot_min = data_min - 0.02*(data_max - data_min)
+    plot_min = max(0, plot_min)
+    plot_max = data_max + 0.02*(data_max - data_min)
+    plot_min = min(0, 1)
 
     cat(paste0('average difference:\n', y_name,ifelse(mean_diff > 0, '+', ''), round(mean_diff*100, 2), 'pp\nx = ', 0.75 * plot_max,'y = ', 0.1 * plot_min, '\n'))
+    cat(paste0('plot lims min: ', plot_min, 'max: ', plot_max))
 
     plt = ggplot(data) +
       geom_point(aes(x = get(x_est), y = get(y_est)), color = 'gray40') +
@@ -107,8 +123,10 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
 
   if (type != "est") {
 
-    x_est = paste0(x,'_rank_', outcome)
-    y_est = paste0(y,'_rank_', outcome)
+    x_name = if(x == 'hp') 'household_pulse' else if(x == 'fb') 'facebook' else 'pop'
+    x_est = paste0('rank_', outcome,'_',x_name)
+    y_name = if(y == 'hp') 'household_pulse' else if(y == 'fb') 'facebook' else 'pop'
+    y_est = paste0('rank_',outcome,'_',y_name)
 
     plot_min = 0
     plot_max = 53
@@ -118,15 +136,19 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb', lab
       #geom_text(data = annotate_df, aes(x= get(paste0(x,'_rank_', outcome)), y = get(paste0(y,'_rank_', outcome)) + 2, label = pop), cex = 3.5) +
       geom_abline(slope = 1, lty = 2) +
       theme_pubr() + theme(panel.grid.major = element_blank()) + theme(panel.grid.minor = element_blank()) +
-      annotate('text', x = 15, y = 2, label = 'highest', color = 'grey50') +
-      annotate('text', x = 36, y = 50, label = 'lowest', color = 'grey50') +
+      annotate('text', x = 15, y = 2, label = 'lowest', color = 'grey50') +
+      annotate('text', x = 36, y = 50, label = 'highest', color = 'grey50') +
       geom_hline(yintercept = 51/3, lty = 3, color = 'gray') +
       geom_hline(yintercept = 2*51/3, lty = 3, color = 'gray') +
       geom_vline(xintercept = 51/3, lty = 3, color = 'gray') +
       geom_vline(xintercept = 2*51/3, lty = 3, color = 'gray') +
-      scale_x_reverse(expand = c(0, 0), limits = c(plot_max,plot_min)) +
-      scale_y_reverse(expand = c(0, 0), limits = c(plot_max,plot_min)) +
-      coord_equal()
+      #xlim(c(1,51)) + ylim(c(1,51))+
+      #expand_limits(y = c(1, 51), x = c(1,51)) +
+      #lims(x = c(1,51), y = c(1,51)) +
+      #coord_cartesian(xlim = c(1,51), ylim = c(1,51)) +
+      scale_y_continuous(breaks = c(1,10,20,30,40,50), limits = c(1,51)) +
+      scale_x_continuous(breaks = c(1,10,20,30,40,50), limits = c(1,51)) +
+      coord_equal(xlim = c(1,51), ylim = c(1,51)) #+ scale_x_continuous(expand = c(1, 51)) + scale_y_continuous(expand = c(1, 51))
 
   }
 
@@ -159,17 +181,23 @@ makeCompPlot <- function(df, show_states, labels){
   annotate_df <- df %>% filter(pop %in% show_states)
 
   combos_top = list(
-    list(x = 'hp', y = 'fb', outcome = 'hesitant', type = 'est')
-    , list(x = 'hp', y = 'fb', outcome = 'willing', type = 'est')
-    , list(x = 'hp', y = 'fb', outcome = 'vaccinated', type = 'est')
+    list(x = 'hp', y = 'fb', outcome = 'hesitant', type = 'est', plot_min = 0)
+    , list(x = 'hp', y = 'fb', outcome = 'willing', type = 'est', plot_min = 0)
+    , list(x = 'hp', y = 'fb', outcome = 'vaccinated', type = 'est', plot_min = 0)
     , list(x = 'hp', y = 'fb', outcome = 'hesitant', type = 'rank', annotate_df = annotate_df)
     , list(x = 'hp', y = 'fb', outcome = 'willing', type = 'rank', annotate_df = annotate_df)
     , list(x = 'hp', y = 'fb', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
   )
 
+  # get plot limits so they match
+  lims = c(df %>% pull(pct_vaccinated_household_pulse),
+           df %>% pull(pct_vaccinated_facebook),
+           df %>% pull(pct_vaccinated_pop) )
+  cat(min(lims), '\n')
+  cat(max(lims), '\n')
   combos_bottom = list(
-    list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'est')
-    , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'est')
+    list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'est', plot_max = lims %>% max(), plot_min = 0)
+    , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'est', plot_max = lims %>% max(), plot_min = 0)
     , list(x = 'pop', y = 'fb', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
     , list(x = 'pop', y = 'hp', outcome = 'vaccinated', type = 'rank', annotate_df = annotate_df)
   )
@@ -201,7 +229,8 @@ makeCompPlot <- function(df, show_states, labels){
                      , y = c$y
                      , type = c$type
                      , labels = labels
-                     , annotate_df = c$annotate_df)
+                     , annotate_df = c$annotate_df
+                     , plot_min = c$plot_min)
   })
 
   # combine and add panel names
@@ -229,7 +258,10 @@ makeCompPlot <- function(df, show_states, labels){
                      , y = c$y
                      , type = c$type
                      , labels = labels
-                     , annotate_df = c$annotate_df)
+                     , annotate_df = c$annotate_df
+                     , plot_max = c$plot_max
+                     , plot_min = c$plot_min
+                     )
   })
 
   # combine and add panel names
