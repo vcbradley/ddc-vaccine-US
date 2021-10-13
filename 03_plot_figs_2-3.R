@@ -78,22 +78,22 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     aes(x = as.Date(end_date),
         y = pct_vaccinated,
         color = study_name,
-        shape = study_name)
-    , position = position_dodge(0.008 * 365)
-    , size = 2) +
+        shape = study_name),
+    position = position_dodge(0.008 * 365),
+    size = 2) +
   geom_pointrange(
     aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5,
         color = study_name,
-        shape = study_name)
-    , position = position_dodge(0.008 * 365)
-    , fatten = 2
-    , show.legend = FALSE) +
+        shape = study_name),
+    position = position_dodge(0.008 * 365),
+    fatten = 2,
+    show.legend = FALSE) +
   theme_pubr() +
   geom_text(
     data = plt_annotate,
     aes(x = as.Date("2021-01-01"),
-        hjust = 0.1,
         y = y,
+        hjust = 0.1,
         label = plt_lbl,
         color = study_name),
     nudge_x = 1,
@@ -103,11 +103,21 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     size = 3,
     show.legend = FALSE
   ) +
-  theme(legend.position = 'none'
-        , plot.margin = unit(rep(0, 4), "lines")
-        , text = element_text(size = 10)
-        , axis.title = element_text(size = 12)
-        , axis.text = element_text(size = 12)
+  geom_point(
+    data = plt_annotate %>% filter(study_name != "CDC (benchmark)"),
+    aes(shape = study_name,
+        color = study_name,
+        y = y),
+    x = as.Date("2020-12-30"),
+    hjust = 0,
+    inherit.aes = FALSE,
+    show.legend = FALSE
+  ) +
+  theme(legend.position = 'none',
+        plot.margin = unit(rep(0, 4), "lines"),
+        text = element_text(size = 10),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 12)
   ) +
   labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
   scale_color_manual(values = scale_values) +
@@ -119,7 +129,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
   geom_hline(yintercept = 0.5, lty = 2, alpha = 0.5) +
   expand_limits(y = 0.8)
 # annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
-
+plot_fig2
 
 ggsave(plot_fig2
        , filename = file.path('plots', 'fig2.png')
