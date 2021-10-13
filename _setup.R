@@ -40,12 +40,17 @@ for (p in pkg.list) {
 
 
 # set color scales
-scale_values <- c(
-  "CDC (benchmark)" = "darkgray",
-  "Delphi-Facebook" = "#4891dc", # blue
-  "Census Household Pulse" = "#69913b", # green
-  "Axios-Ipsos" = "#cf7a30" # orange
+color_pal_df <- tribble(
+  ~survey,                   ~arxiv,  ~rainier, ~okabe,
+  "Delphi-Facebook",        "#4891dc", "#9FB6DA", "#0072B2",
+  "Census Household Pulse", "#69913b", "#759C44", "#009E73",
+  "Axios-Ipsos",            "#cf7a30", "#965127", "#D55E00"
 )
+color_pal <- select(color_pal_df, survey, rainier) %>% tibble::deframe()
+color_pal["Delphi-Facebook"] <- "#0072B2"
+scale_values <- c("CDC (benchmark)" = "darkgray", color_pal)
+
+
 
 # dataverse path
 dvdoi <- "10.7910/DVN/GKBUUK"
