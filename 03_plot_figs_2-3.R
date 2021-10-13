@@ -124,7 +124,10 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
         axis.title = element_text(size = 12),
         axis.text = element_text(size = 12)
   ) +
-  labs(x = NULL, y = '% Vaccinated (at least 1 dose)', color = '') +
+  labs(x = NULL,
+       y = '% Vaccinated (at least 1 dose)',
+       color = FALSE,
+       title = "Estimates of Vaccination Uptake") +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
                      breaks = seq(0, 0.8, 0.1),
@@ -157,7 +160,7 @@ fig3_pl[["panelA_error"]] <- plot_with_errorbands(
   outcome = "error",
   ylab = "Error",
   include_legend = TRUE,
-  title = "Actual error",
+  title = "Total error",
   xlim_val = xlims
 )
 
@@ -174,7 +177,7 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   labs(x = NULL, y = expression(sigma[Y]),
        color = "Study",
        shape = "Study",
-       title = "Problem difficulty") +
+       title = "Inherent problem difficulty") +
   scale_color_manual(values = scale_values) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
@@ -182,7 +185,7 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   annotate(geom = "text",
            color = "darkgray",
            x = as.Date("2021-04-13"),
-           y = 0.32,
+           y = 0.35,
            size = 2.5,
            label = "CDC (benchmark)") +
   theme(axis.title = element_text(size = 8),
@@ -223,7 +226,7 @@ fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
   outcome = "ddc_weighted",
   ylab = "ddc",
   include_legend = TRUE,
-  title = "Data defect correlation\n(ddc)",
+  title = "Data quality defect\n(ddc, data defect correlation)",
   xlim_val = xlims
 )
 
