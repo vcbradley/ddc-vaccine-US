@@ -210,7 +210,7 @@ fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   labs(y = expression(sqrt((N-n)/N))) +
   xdate_m +
   expand_limits(y = 0) +
-  scale_y_continuous(expand = expansion(mult = c(0, 0.01)))
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
 
 ## panel D - ddc
 fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
