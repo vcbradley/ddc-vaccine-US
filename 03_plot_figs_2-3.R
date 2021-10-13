@@ -74,31 +74,33 @@ plt_annotate <- tibble(
 
 
 plot_fig2 = ggplot(all_polls_plt_noerror) +
+  # benchmark line
   geom_line(data = benchmark,
             size = 1.5,
             aes(x = as.Date(date),
                 y = pct_pop_vaccinated,
                 color = 'CDC (benchmark)')) +
+  # points
   geom_pointline(
     aes(x = as.Date(end_date),
         y = pct_vaccinated,
         color = study_name,
         shape = study_name),
     position = position_dodge(0.008 * 365),
-    size = 2) +
-  geom_pointrange(
+    size = 1) +
+  # errorbar
+  geom_errorbar(
     aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5,
         color = study_name,
         shape = study_name),
     position = position_dodge(0.008 * 365),
-    fatten = 2,
+    width = 0,
     show.legend = FALSE) +
-  theme_pubr() +
+  # legend text
   geom_text(
     data = plt_annotate,
     aes(x = as.Date("2021-01-01"),
         y = y,
-        hjust = 0.1,
         label = plt_lbl,
         color = study_name),
     nudge_x = 1,
@@ -108,6 +110,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     size = 3,
     show.legend = FALSE
   ) +
+  # legend
   geom_point(
     data = plt_annotate %>% filter(study_name != "CDC (benchmark)"),
     aes(shape = study_name,
@@ -115,9 +118,11 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
         y = y),
     x = as.Date("2020-12-30"),
     hjust = 0,
+    size = 2,
     inherit.aes = FALSE,
     show.legend = FALSE
   ) +
+  theme_pubr() +
   theme(legend.position = 'none',
         plot.margin = unit(rep(0, 4), "lines"),
         text = element_text(size = 10),
@@ -128,6 +133,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
        y = '% Vaccinated (at least 1 dose)',
        color = FALSE,
        title = "Estimates of Vaccination Uptake") +
+  scale_shape_manual(values = shape_values) +
   scale_color_manual(values = scale_values) +
   scale_y_continuous(labels = percent_format(accuracy = 1),
                      breaks = seq(0, 0.8, 0.1),
@@ -139,12 +145,12 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
 # annotate('text', x = as.Date('2021-01-25'), y = 0.52, label = '50% with one dose')
 plot_fig2
 
-ggsave(plot_fig2
-       , filename = file.path('plots', 'fig2.png')
-       , device = 'png'
-       , width = plot_width
-       , height = plot_height
-       , units = 'in')
+ggsave(plot_fig2,
+       filename = file.path('plots', 'fig2.png'),
+       device = 'png',
+       width = plot_width,
+       height = plot_height,
+       units = 'in')
 
 
 

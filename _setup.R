@@ -50,6 +50,11 @@ color_pal <- select(color_pal_df, survey, rainier) %>% tibble::deframe()
 color_pal["Delphi-Facebook"] <- "#0072B2"
 scale_values <- c("CDC (benchmark)" = "darkgray", color_pal)
 
+shape_values <- c(
+  "Delphi-Facebook" = 17,
+  "Census Household Pulse" = 15,
+  "Axios-Ipsos" = 19
+)
 
 
 # dataverse path
