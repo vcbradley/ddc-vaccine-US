@@ -55,6 +55,11 @@ xdate_m <- scale_x_date(
   breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
   limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
+xdate_m2 <- scale_x_date(
+  labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan '21"),
+  breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
+  limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
+
 
 ######### PLOT FIG 2 - ESTIMATES OVER TIME ###########
 plt_annotate <- tibble(
@@ -158,7 +163,7 @@ fig3_pl[["panelA_error"]] <- plot_with_errorbands(
 
 fig3_pl[["panelA_error"]] <- fig3_pl[["panelA_error"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m +
+  xdate_m2 +
   labs(y = expression(bar(Y)[n] - bar(Y)[N]))
 
 
@@ -173,7 +178,7 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   scale_color_manual(values = scale_values) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
-  xdate_m +
+  xdate_m2 +
   annotate(geom = "text",
            color = "darkgray",
            x = as.Date("2021-04-13"),
@@ -196,7 +201,7 @@ fig3_pl[["panelC_f"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelC_f"]] <- fig3_pl[["panelC_f"]] +
   scale_y_continuous(labels = scales::percent) +
-  xdate_m
+  xdate_m2
 
 ## panel D - dropout odds
 fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
@@ -208,7 +213,7 @@ fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   xlim_val = xlims
 ) +
   labs(y = expression(sqrt((N-n)/N))) +
-  xdate_m +
+  xdate_m2 +
   expand_limits(y = 0) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
 
@@ -224,7 +229,7 @@ fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
 
 fig3_pl[["panelD_ddc"]] <- fig3_pl[["panelD_ddc"]] +
   geom_hline(yintercept = 0, lty = 2) +
-  xdate_m +
+  xdate_m2 +
   labs(y = expression(hat(rho)[list(R, Y)]))
 
 
@@ -240,7 +245,7 @@ fig3_pl[["panelE_neff_fb"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelE_neff_fb"]] <- fig3_pl[["panelE_neff_fb"]] +
   scale_y_continuous(expand = c(0, 0)) +
-  xdate_m
+  xdate_m2
 
 ## panel F - effective sample size, Census Household Pulse
 fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
@@ -253,7 +258,7 @@ fig3_pl[["panelF_neff_chp"]] <- plot_with_errorbands(
 )
 fig3_pl[["panelF_neff_chp"]] <- fig3_pl[["panelF_neff_chp"]] +
   scale_y_continuous(expand = c(0, 0)) +
-  xdate_m
+  xdate_m2
 
 # E and F together
 fig3_pl[["panelG_neff_all"]] <-
