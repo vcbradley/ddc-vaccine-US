@@ -226,7 +226,7 @@ fig3_pl[["panelD_ddc"]] <- plot_with_errorbands(
   outcome = "ddc_weighted",
   ylab = "ddc",
   include_legend = TRUE,
-  title = "Data quality defect\n(ddc, data defect correlation)",
+  title = "Data quality defect\n(data defect correlation)",
   xlim_val = xlims
 )
 
