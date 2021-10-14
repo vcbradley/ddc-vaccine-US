@@ -13,6 +13,7 @@ plot_with_errorbands = function(data, outcome
     theme_pubr() +
     scale_color_manual(values = scale_values) +
     scale_fill_manual(values = scale_values, guide = 'none') +
+    scale_shape_manual(values = shape_values) +
     labs(x = NULL, color = 'Study', shape = 'Study') +
     theme(axis.title = element_text(size = 8),
           axis.text = element_text(size = 8),

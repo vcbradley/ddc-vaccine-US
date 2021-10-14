@@ -53,7 +53,7 @@ all_polls_plt_wide <- all_polls_plt %>%
 xdate_m <- scale_x_date(
   labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan 2021"),
   breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-  limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
+  limits = c(as.Date("2020-12-28"), as.Date("2021-05-20")))
 
 xdate_m2 <- scale_x_date(
   labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan '21"),
@@ -100,7 +100,7 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
   # legend text
   geom_text(
     data = plt_annotate,
-    aes(x = as.Date("2021-01-01"),
+    aes(x = as.Date("2021-01-02"),
         y = y,
         label = plt_lbl,
         color = study_name),
@@ -117,12 +117,19 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     aes(shape = study_name,
         color = study_name,
         y = y),
-    x = as.Date("2020-12-30"),
+    x = as.Date("2020-12-28"),
     hjust = 0,
     size = 2,
     inherit.aes = FALSE,
     show.legend = FALSE
   ) +
+  annotate("segment",
+           x = as.Date("2020-12-28"),
+           xend = as.Date("2021-01-01"),
+           y = 0.60, yend = 0.6,
+           color = "grey50",
+           size = 2,
+           alpha = 0.6) +
   theme_pubr() +
   theme(legend.position = 'none',
         plot.margin = unit(rep(0, 4), "lines"),
@@ -192,7 +199,7 @@ fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   annotate(geom = "text",
            color = "darkgray",
            x = as.Date("2021-04-13"),
-           y = 0.35,
+           y = 0.39,
            size = 2.5,
            label = "CDC (benchmark)") +
   theme(axis.title = element_text(size = 8),
@@ -340,7 +347,7 @@ ggsave("plots/fig2_n-eff.pdf",
        units = "cm")
 
 ## OLD R and R PANELS (Fig. 2 - 3)
-
+if (FALSE) {
 ## 4 panel -------
 fig3_4panel <- ggarrange(fig3_pl[["panelA_error"]],
                          fig3_pl[["panelB_sdG"]],
@@ -380,3 +387,4 @@ ggsave(fig3_6panel,
   height = 5,
   units = "in"
 )
+}
