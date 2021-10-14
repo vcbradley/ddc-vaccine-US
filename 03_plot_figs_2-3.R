@@ -12,8 +12,8 @@ max_date <- "2021-05-19"
 benchmark_date <- "2021-05-26"
 
 
-plot_width = 6.5
-plot_height = 4
+plot_width <- 6.5
+plot_height <- 4
 
 
 
@@ -53,12 +53,14 @@ all_polls_plt_wide <- all_polls_plt %>%
 xdate_m <- scale_x_date(
   labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan 2021"),
   breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-  limits = c(as.Date("2020-12-28"), as.Date("2021-05-20")))
+  limits = c(as.Date("2020-12-28"), as.Date("2021-05-20"))
+)
 
 xdate_m2 <- scale_x_date(
   labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan '21"),
   breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-  limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
+  limits = c(as.Date("2021-01-01"), as.Date("2021-05-20"))
+)
 
 
 ######### PLOT FIG 2 - ESTIMATES OVER TIME ###########
@@ -68,42 +70,56 @@ plt_annotate <- tibble(
   y = c(0.60, 0.78, 0.66, 0.72),
   n = c("", "250,000", "1000", "75,000")
 ) %>%
-  mutate(plt_lbl = glue("'{study_name}'~~(n%~~%'{n}')"),
-         plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "'CDC'~~'(benchmark)'"))
+  mutate(
+    plt_lbl = glue("'{study_name}'~~(n%~~%'{n}')"),
+    plt_lbl = replace(plt_lbl, study_name == "CDC (benchmark)", "'CDC'~~'(benchmark)'")
+  )
 
 
 
-plot_fig2 = ggplot(all_polls_plt_noerror) +
+plot_fig2 <- ggplot(all_polls_plt_noerror) +
   # benchmark line
-  geom_line(data = benchmark,
-            size = 1.5,
-            alpha = 0.6,
-            aes(x = as.Date(date),
-                y = pct_pop_vaccinated,
-                color = 'CDC (benchmark)')) +
+  geom_line(
+    data = benchmark,
+    size = 1.5,
+    alpha = 0.6,
+    aes(
+      x = as.Date(date),
+      y = pct_pop_vaccinated,
+      color = "CDC (benchmark)"
+    )
+  ) +
   # points
   geom_pointline(
-    aes(x = as.Date(end_date),
-        y = pct_vaccinated,
-        color = study_name,
-        shape = study_name),
+    aes(
+      x = as.Date(end_date),
+      y = pct_vaccinated,
+      color = study_name,
+      shape = study_name
+    ),
     position = position_dodge(0.008 * 365),
-    size = 1) +
+    size = 1
+  ) +
   # errorbar
   geom_errorbar(
-    aes(x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5,
-        color = study_name,
-        shape = study_name),
+    aes(
+      x = as.Date(end_date), y = pct_vaccinated, ymin = ci_2.5, ymax = ci_97.5,
+      color = study_name,
+      shape = study_name
+    ),
     position = position_dodge(0.008 * 365),
     width = 0,
-    show.legend = FALSE) +
+    show.legend = FALSE
+  ) +
   # legend text
   geom_text(
     data = plt_annotate,
-    aes(x = as.Date("2021-01-02"),
-        y = y,
-        label = plt_lbl,
-        color = study_name),
+    aes(
+      x = as.Date("2021-01-02"),
+      y = y,
+      label = plt_lbl,
+      color = study_name
+    ),
     nudge_x = 1,
     parse = TRUE,
     inherit.aes = FALSE,
@@ -114,9 +130,11 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
   # legend
   geom_point(
     data = plt_annotate %>% filter(study_name != "CDC (benchmark)"),
-    aes(shape = study_name,
-        color = study_name,
-        y = y),
+    aes(
+      shape = study_name,
+      color = study_name,
+      y = y
+    ),
     x = as.Date("2020-12-28"),
     hjust = 0,
     size = 2,
@@ -124,28 +142,34 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
     show.legend = FALSE
   ) +
   annotate("segment",
-           x = as.Date("2020-12-28"),
-           xend = as.Date("2021-01-01"),
-           y = 0.60, yend = 0.6,
-           color = "grey50",
-           size = 2,
-           alpha = 0.6) +
-  theme_pubr() +
-  theme(legend.position = 'none',
-        plot.margin = unit(rep(0, 4), "lines"),
-        text = element_text(size = 10),
-        axis.title = element_text(size = 12),
-        axis.text = element_text(size = 12)
+    x = as.Date("2020-12-28"),
+    xend = as.Date("2021-01-01"),
+    y = 0.60, yend = 0.6,
+    color = "grey50",
+    size = 2,
+    alpha = 0.6
   ) +
-  labs(x = NULL,
-       y = '% Vaccinated (at least 1 dose)',
-       color = FALSE,
-       title = "Estimates of Vaccination Uptake") +
+  theme_pubr() +
+  theme(
+    legend.position = "none",
+    plot.margin = unit(rep(0, 4), "lines"),
+    text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 12)
+  ) +
+  labs(
+    x = NULL,
+    y = "% Vaccinated (at least 1 dose)",
+    color = FALSE,
+    title = "Estimates of Vaccination Uptake"
+  ) +
   scale_shape_manual(values = shape_values) +
   scale_color_manual(values = scale_values) +
-  scale_y_continuous(labels = percent_format(accuracy = 1),
-                     breaks = seq(0, 0.8, 0.2),
-                     expand = expansion(mult = c(0, 0.01))) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    breaks = seq(0, 0.8, 0.2),
+    expand = expansion(mult = c(0, 0.01))
+  ) +
   xdate_m +
   coord_cartesian(clip = "off") +
   geom_hline(yintercept = 0.5, lty = 2, alpha = 0.5) +
@@ -154,11 +178,12 @@ plot_fig2 = ggplot(all_polls_plt_noerror) +
 plot_fig2
 
 ggsave(plot_fig2,
-       filename = file.path('plots', 'fig2.png'),
-       device = 'png',
-       width = plot_width,
-       height = plot_height,
-       units = 'in')
+  filename = file.path("plots", "fig2.png"),
+  device = "png",
+  width = plot_width,
+  height = plot_height,
+  units = "in"
+)
 
 
 
@@ -188,22 +213,28 @@ fig3_pl[["panelA_error"]] <- fig3_pl[["panelA_error"]] +
 fig3_pl[["panelB_sdG"]] <- ggplot(benchmark, aes(x = as.Date(date), y = sd_G)) +
   lemon::geom_pointline(aes(color = study_name), size = 0.1) +
   theme_pubr() +
-  labs(x = NULL, y = expression(sigma[Y]),
-       color = "Study",
-       shape = "Study",
-       title = "Inherent\nproblem difficulty") +
+  labs(
+    x = NULL, y = expression(sigma[Y]),
+    color = "Study",
+    shape = "Study",
+    title = "Inherent\nproblem difficulty"
+  ) +
   scale_color_manual(values = scale_values) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.01))) +
   xdate_m2 +
-  annotate(geom = "text",
-           color = "darkgray",
-           x = as.Date("2021-04-13"),
-           y = 0.39,
-           size = 2.5,
-           label = "CDC (benchmark)") +
-  theme(axis.title = element_text(size = 8),
-        axis.text = element_text(size = 8))
+  annotate(
+    geom = "text",
+    color = "darkgray",
+    x = as.Date("2021-04-13"),
+    y = 0.39,
+    size = 2.5,
+    label = "CDC (benchmark)"
+  ) +
+  theme(
+    axis.title = element_text(size = 8),
+    axis.text = element_text(size = 8)
+  )
 
 
 ## panel C - f, sampling fraction
@@ -229,7 +260,7 @@ fig3_pl[["panelC_DO"]] <- plot_with_errorbands(
   use_ribbons = NULL,
   xlim_val = xlims
 ) +
-  labs(y = expression(sqrt((N-n)/N))) +
+  labs(y = expression(sqrt((N - n) / N))) +
   xdate_m2 +
   expand_limits(y = 0) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.05)))
@@ -284,9 +315,9 @@ fig3_pl[["panelG_neff_all"]] <-
       rowwise() %>%
       mutate(
         n_eff_adj_less10pct = min(n_eff_star_cap_less10pct, n_eff_star_cap_plus10pct),
-        n_eff_adj_less5pct  = min(n_eff_star_cap_less5pct, n_eff_star_cap_plus5pct),
+        n_eff_adj_less5pct = min(n_eff_star_cap_less5pct, n_eff_star_cap_plus5pct),
         n_eff_adj_plus10pct = max(n_eff_star_cap_less10pct, n_eff_star_cap_plus10pct),
-        n_eff_adj_plus5pct  = max(n_eff_star_cap_less5pct, n_eff_star_cap_plus5pct),
+        n_eff_adj_plus5pct = max(n_eff_star_cap_less5pct, n_eff_star_cap_plus5pct),
         `n_eff_adj_no error` = `n_eff_star_cap_no error`,
       ),
     outcome = "n_eff_adj",
@@ -294,7 +325,7 @@ fig3_pl[["panelG_neff_all"]] <-
     xlim_val = xlims,
     include_legend = FALSE,
     title = NULL,
-    use_ribbons = c('5pct')
+    use_ribbons = c("5pct")
   ) +
   scale_y_log10(labels = comma_format(accuracy = 1)) +
   xdate_m +
@@ -304,11 +335,14 @@ fig3_pl[["panelG_neff_all"]] <-
   scale_x_date(
     labels = function(x) recode(format(as.Date(x), "%b"), "May" = "May 2021"),
     breaks = seq(as.Date("2021-01-01"), as.Date("2021-05-01"), by = "month"),
-    limits = c(as.Date("2021-01-01"), as.Date("2021-05-20"))) +
+    limits = c(as.Date("2021-01-01"), as.Date("2021-05-20"))
+  ) +
   scale_color_manual(values = scale_values) +
-  theme(axis.line = element_line(),
-        axis.text = element_text(color = "gray20"),
-        legend.position = "right") +
+  theme(
+    axis.line = element_line(),
+    axis.text = element_text(color = "gray20"),
+    legend.position = "right"
+  ) +
   labs(color = NULL, shape = NULL)
 
 
@@ -316,75 +350,81 @@ fig3_pl[["panelG_neff_all"]] <-
 ######### MAKE PANELS #########
 
 ## New Fig. 1 ------
-layout =
+layout <-
   "AABC
  AADE"
 
-(plot_fig2 +  guides(color = FALSE, shape = FALSE)) +
+(plot_fig2 + guides(color = FALSE, shape = FALSE)) +
   fig3_pl[["panelA_error"]] +
   fig3_pl[["panelD_ddc"]] +
   fig3_pl[["panelC_DO"]] +
   (fig3_pl[["panelB_sdG"]] + guides(color = FALSE)) +
-  plot_layout(design = layout,
-              guides = "collect") +
+  plot_layout(
+    design = layout,
+    guides = "collect"
+  ) +
   plot_annotation(tag_levels = "a") &
-  theme(legend.position = "bottom",
-        plot.title = element_text(size = 10, face = "bold"),
-        axis.text = element_text(color = "gray20"),
-        plot.tag = element_text(face = 'bold'))
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(size = 10, face = "bold"),
+    axis.text = element_text(color = "gray20"),
+    plot.tag = element_text(face = "bold")
+  )
 
 ggsave("plots/fig1_topline.pdf",
-       w = 18*1.2,
-       h = 9*1.2,
-       units = "cm")
+  w = 18 * 1.2,
+  h = 9 * 1.2,
+  units = "cm"
+)
 
 
 ## New Fig. 2 ----
 ggsave("plots/fig2_n-eff.pdf",
-       fig3_pl[["panelG_neff_all"]] + labs(shape = NULL),
-       w = 9*1.5,
-       h = 5*1.5,
-       units = "cm")
+  fig3_pl[["panelG_neff_all"]] + labs(shape = NULL),
+  w = 9 * 1.5,
+  h = 5 * 1.5,
+  units = "cm"
+)
 
 ## OLD R and R PANELS (Fig. 2 - 3)
 if (FALSE) {
-## 4 panel -------
-fig3_4panel <- ggarrange(fig3_pl[["panelA_error"]],
-                         fig3_pl[["panelB_sdG"]],
-                         fig3_pl[["panelC_DO"]],
-                         fig3_pl[["panelD_ddc"]],
-                         common.legend = TRUE,
-                         legend = "bottom",
-                         labels = c("A", "B", "C", "D", "E", "F"),
-                         nrow = 2, ncol = 2,
-                         align = "hv"
-)
-ggsave(fig3_4panel,
-       filename = file.path("plots", "fig3_4panel.pdf"),
-       device = "pdf",
-       width = 8,
-       height = 7,
-       units = "in"
-)
+  ## 4 panel -------
+  fig3_4panel <- ggarrange(fig3_pl[["panelA_error"]],
+    fig3_pl[["panelB_sdG"]],
+    fig3_pl[["panelC_DO"]],
+    fig3_pl[["panelD_ddc"]],
+    common.legend = TRUE,
+    legend = "bottom",
+    labels = c("A", "B", "C", "D", "E", "F"),
+    nrow = 2, ncol = 2,
+    align = "hv"
+  )
+  ggsave(fig3_4panel,
+    filename = file.path("plots", "fig3_4panel.pdf"),
+    device = "pdf",
+    width = 8,
+    height = 7,
+    units = "in"
+  )
 
-## 6 panel -----
-fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
-                         fig3_pl[["panelB_sdG"]],
-                         fig3_pl[["panelC_DO"]],
-                         fig3_pl[["panelD_ddc"]],
-                         fig3_pl[["panelE_neff_fb"]],
-                         fig3_pl[["panelF_neff_chp"]],
-                         common.legend = TRUE,
-                         legend = "bottom",
-                         labels = c("A", "B", "C", "D", "E", "F"),
-                         nrow = 2, ncol = 3,
-                         align = "hv"
-)
-ggsave(fig3_6panel,
-  filename = file.path("plots", "fig3_6panel.pdf"),
-  device = "pdf",
-  width = 11,
-  height = 5,
-  units = "in"
-)
+  ## 6 panel -----
+  fig3_6panel <- ggarrange(fig3_pl[["panelA_error"]],
+    fig3_pl[["panelB_sdG"]],
+    fig3_pl[["panelC_DO"]],
+    fig3_pl[["panelD_ddc"]],
+    fig3_pl[["panelE_neff_fb"]],
+    fig3_pl[["panelF_neff_chp"]],
+    common.legend = TRUE,
+    legend = "bottom",
+    labels = c("A", "B", "C", "D", "E", "F"),
+    nrow = 2, ncol = 3,
+    align = "hv"
+  )
+  ggsave(fig3_6panel,
+    filename = file.path("plots", "fig3_6panel.pdf"),
+    device = "pdf",
+    width = 11,
+    height = 5,
+    units = "in"
+  )
 }
