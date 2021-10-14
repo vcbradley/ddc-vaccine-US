@@ -136,8 +136,8 @@ plot_comparisons = function(data, outcome, type = 'est', x = 'hp', y = 'fb'
       #geom_text(data = annotate_df, aes(x= get(paste0(x,'_rank_', outcome)), y = get(paste0(y,'_rank_', outcome)) + 2, label = pop), cex = 3.5) +
       geom_abline(slope = 1, lty = 2) +
       theme_pubr() + theme(panel.grid.major = element_blank()) + theme(panel.grid.minor = element_blank()) +
-      annotate('text', x = 15, y = 2, label = 'lowest', color = 'grey50') +
-      annotate('text', x = 36, y = 50, label = 'highest', color = 'grey50') +
+      annotate('text', x = 15, y = 2, label = 'highest', color = 'grey50') +
+      annotate('text', x = 36, y = 50, label = 'lowest', color = 'grey50') +
       geom_hline(yintercept = 51/3, lty = 3, color = 'gray') +
       geom_hline(yintercept = 2*51/3, lty = 3, color = 'gray') +
       geom_vline(xintercept = 51/3, lty = 3, color = 'gray') +
