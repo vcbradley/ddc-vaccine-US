@@ -7,6 +7,7 @@ pkg.list <- c(
   "purrr",
   "fs",
   "readr",
+  "tidyverse",
   # data reading
   "curl",
   "readxl",
@@ -39,7 +40,7 @@ for (p in pkg.list) {
 # set color scales
 scale_values <- c(
   "CDC (benchmark)" = "darkgray",
-  "Delphi-Facebook" = "#4891dc", # blue
-  "Census Household Pulse" = "#69913b", # green
-  "Axios-Ipsos" = "#cf7a30" # orange
+  "Delphi-Facebook" = "#9FB6DA", # blue
+  "Census Household Pulse" = "#759C44", # green
+  "Axios-Ipsos" = "#965127" # orange
 )

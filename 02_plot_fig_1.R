@@ -6,17 +6,17 @@ source('functions/functions_plots.R')
 benchmark_version = '2021-05-26'
 
 # survey dates
-# which_waves <- list(facebook = '2021-03-27'
-#                     , household_pulse = '2021-03-29'
-#                     , ipsos_axios = '2021-03-22'
-#                     , benchmark = '2021-03-31'   # end of max wave plus 5 days for reporting lag
-# )
-
-which_waves <- list(facebook = '2021-05-08'
-                    , household_pulse = '2021-05-10'
-                    , ipsos_axios = '2021-05-10'
-                    , benchmark = '2021-05-15'   # end of max wave plus 5 days for reporting lag
+which_waves <- list(facebook = '2021-03-27'
+                    , household_pulse = '2021-03-29'
+                    , ipsos_axios = '2021-03-22'
+                    , benchmark = '2021-03-31'   # end of max wave plus 5 days for reporting lag
 )
+
+# which_waves <- list(facebook = '2021-05-08'
+#                     , household_pulse = '2021-05-10'
+#                     , ipsos_axios = '2021-05-10'
+#                     , benchmark = '2021-05-15'   # end of max wave plus 5 days for reporting lag
+# )
 
 
 ######### BENCHMARK DATA ###########

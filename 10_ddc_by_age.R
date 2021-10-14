@@ -211,11 +211,11 @@ hp_ddc_agegroup_fb <- left_join(
   mutate(ddc_allyoung = ddc(pct_vaccinated_allyoung,
                       pct_vaccinated,
                       N = pop_total,
-                      n = n, cv = cv_weights)
+                      n = n)
          , ddc_allold = ddc(pct_vaccinated_allold,
                                  pct_vaccinated,
                                  N = pop_total,
-                                 n = n, cv = cv_weights)
+                                 n = n)
          ) %>%
   ungroup()
 
@@ -288,12 +288,12 @@ plot_ddc_byage <- ggplot() +
   expand_limits(y = 0) +
   #facet_rep_wrap(~study_name, ) +
   geom_text(data = tibble(study_name = c("Delphi-Facebook", 'Census Household Pulse'),
-                          date = c( ymd("2021-05-01"), ymd('2021-05-01')),
+                          date = c( ymd("2021-05-5"), ymd('2021-05-13')),
                           ddc = c( 0.0155, 0.0035),
                           #label = c('All ages', '18-64', 'All ages', '18-64')
                           ),
             aes(x = date, y = ddc, label = study_name, color = study_name),
-            size = 2.5) +
+            size = 3) +
   scale_color_manual(values = scale_values) +
   scale_fill_manual(values = scale_values) +
   scale_y_continuous(expand = expansion()) +
@@ -309,5 +309,6 @@ plot_ddc_byage <- ggplot() +
 plot_ddc_byage
 
 plot_trend_by_age + plot_ddc_byage + plot_layout(nrow = 2, heights = c(1,1.5))
+
 ggsave(filename = 'plots/fig_ddc_by_age.pdf', width= 7, height = 7)
 

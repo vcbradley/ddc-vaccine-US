@@ -20,6 +20,11 @@ all_polls_end_of_march <- all_polls %>%
   filter(end_date <= '2021-04-01') %>% 
   group_by(mode) %>% 
   filter(end_date == max(end_date))
+
+all_polls_beg_of_may <- all_polls %>% 
+  filter(end_date <= '2021-05-10') %>% 
+  group_by(mode) %>% 
+  filter(end_date == max(end_date))
   
 ```
 
@@ -40,8 +45,16 @@ all_polls_end_of_march %>%
   mutate(diff = facebook - household_pulse) %>%
   summarise(min_diff = min(diff), mean_diff = mean(diff), max_diff = max(diff))
 ```
+## Differences in willingness estimates by the end of March 2021
+```{r}
+all_polls_beg_of_may %>% 
+  filter(mode %in% c('facebook', 'household_pulse'), pop != 'US') %>% 
+  pivot_wider(id_cols = c('pop'), names_from = mode, values_from = c(pct_willing)) %>%
+  mutate(diff = facebook - household_pulse) %>%
+  summarise(min_diff = min(diff), mean_diff = mean(diff), max_diff = max(diff))
+```
 
-## Rank correlation
+## Rank correlation -- March
 ```{r}
 all_polls_end_of_march_ranked <- all_polls_end_of_march %>%
   filter(mode %in% c('facebook', 'household_pulse'), pop != 'US') %>%
@@ -49,15 +62,39 @@ all_polls_end_of_march_ranked <- all_polls_end_of_march %>%
   mutate(rank_willing = frank(-pct_willing), rank_hesitant = frank(-pct_hesitant))
 
 all_polls_end_of_march_ranked %>%
-  pivot_wider(id_cols = pop, names_from = mode, values_from = c(pct_hesitant,  pct_willing, pct_vaccinated)) %>%
+  pivot_wider(id_cols = pop, names_from = mode, values_from = c(pct_hesitant,  pct_willing, pct_vaccinated, pct_pop_vaccinated)) %>%
   summarise(cor_rank_vaccinated = cor(pct_vaccinated_facebook, pct_vaccinated_household_pulse, method = 'kendall')
             , cor_rank_hesitant = cor(pct_hesitant_facebook, pct_hesitant_household_pulse, method = 'kendall')
-            , cor_rank_willing = cor(pct_willing_facebook, pct_willing_household_pulse, method = 'kendall'))
+            , cor_rank_willing = cor(pct_willing_facebook, pct_willing_household_pulse, method = 'kendall')
+            , cor_rank_vaccinated_fb_pop = cor(pct_vaccinated_facebook, pct_pop_vaccinated_facebook, method = 'kendall')
+            , cor_rank_vaccinated_hp_pop = cor(pct_vaccinated_household_pulse, pct_pop_vaccinated_household_pulse, method = 'kendall')
+            )
 
-all_polls_end_of_march_ranked %>% 
-  filter(pop == 'MO') %>% 
-  mutate(MoE_hesitant = 2 * pct_hesitant_se, lb = pct_hesitant - MoE_hesitant, ub = pct_hesitant + MoE_hesitant) %>% 
-  select(pop, rank_hesitant, rank_hesitant, pct_hesitant , lb, ub)
+# all_polls_end_of_march_ranked %>% 
+#   filter(pop == 'MO') %>% 
+#   mutate(MoE_hesitant = 2 * pct_hesitant_se, lb = pct_hesitant - MoE_hesitant, ub = pct_hesitant + MoE_hesitant) %>% 
+#   select(pop, rank_hesitant, rank_hesitant, pct_hesitant , lb, ub)
+
+```
+
+## Rank correlation -- May
+```{r}
+all_polls_beg_of_may_ranked <- all_polls_beg_of_may %>%
+  filter(mode %in% c('facebook', 'household_pulse'), pop != 'US') %>%
+  group_by(mode) %>%
+  mutate(rank_willing = frank(-pct_willing), rank_hesitant = frank(-pct_hesitant))
+
+all_polls_beg_of_may_ranked %>%
+  pivot_wider(id_cols = pop, names_from = mode, values_from = c(pct_hesitant,  pct_willing, pct_vaccinated, pct_pop_vaccinated)) %>%
+  summarise(cor_rank_vaccinated = cor(pct_vaccinated_facebook, pct_vaccinated_household_pulse, method = 'kendall')
+            , cor_rank_hesitant = cor(pct_hesitant_facebook, pct_hesitant_household_pulse, method = 'kendall')
+            , cor_rank_willing = cor(pct_willing_facebook, pct_willing_household_pulse, method = 'kendall'), cor_rank_vaccinated_fb_pop = cor(pct_vaccinated_facebook, pct_pop_vaccinated_facebook, method = 'kendall')
+            , cor_rank_vaccinated_hp_pop = cor(pct_vaccinated_household_pulse, pct_pop_vaccinated_household_pulse, method = 'kendall'))
+
+# all_polls_beg_of_may_ranked %>% 
+#   filter(pop == 'MO') %>% 
+#   mutate(MoE_hesitant = 2 * pct_hesitant_se, lb = pct_hesitant - MoE_hesitant, ub = pct_hesitant + MoE_hesitant) %>% 
+#   select(pop, rank_hesitant, rank_hesitant, pct_hesitant , lb, ub)
 
 ```
 
