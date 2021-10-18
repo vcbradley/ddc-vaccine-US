@@ -6,13 +6,13 @@ library(scales)
 library(wacolors)
 
 xdate_m2 <- scale_x_date(
-  labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan 2021"),
+  labels = function(x) recode(format(as.Date(x), "%b"), "Jan" = "Jan '21"),
   breaks = as.Date(c("2021-01-01", "2021-03-01", "2021-05-01")),
   limits = c(as.Date("2021-01-01"), as.Date("2021-05-20")))
 
 
-# data ----
-toplines <- read_csv("small-polls_toplines.csv")
+
+toplines <- read_csv("data/small-polls_toplines.csv")
 
 bench <- toplines %>%
   filter(pollster == "CDC") %>%
@@ -37,7 +37,7 @@ polls <- toplines %>%
          pct_label = replace(pct_label, pollster == "Axios-Ipsos" & wave == 41, NA_character_)
          )
 
-color_pal <- c("#cf7a30", unname(wa_pal("larch")[c(1, 2, 4)]))
+color_pal <- c("#965127", unname(wa_pal("larch")[c(1, 2, 4)]))
 
 polls %>%
   ggplot(aes(x = date,
