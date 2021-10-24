@@ -6,6 +6,7 @@ covid-empirical/data/*
 .Rproj.user
 
 data/raw
+share
 
 
 data/census-household-pulse/tables/*.xlsx
