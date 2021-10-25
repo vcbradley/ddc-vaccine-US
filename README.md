@@ -4,7 +4,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2106.05818-66a61e.svg)](https://arxiv.org/abs/2106.05818)
 
 
-Valerie C. Bradley (1), Shiro Kuriwaki, Michael Isakov, Dino Sejdinovic, Xiao-Li Meng, Seth Flaxman
+Valerie C. Bradley, Shiro Kuriwaki, Michael Isakov, Dino Sejdinovic, Xiao-Li Meng, Seth Flaxman
 
 
 This repository includes code to replicate the figures and tables of the paper.
