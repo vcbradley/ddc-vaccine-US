@@ -108,18 +108,3 @@ all_polls_plt %>%
           , cor_rank_vaccinated_fb_pop = cor(pct_vaccinated_facebook, pct_vaccinated_pop, method = 'kendall')
           , cor_rank_vaccinated_hp_pop = cor(pct_vaccinated_household_pulse, pct_vaccinated_pop, method = 'kendall')
             )
-
-
-# ma rank over time
-all_polls_ranked <- all_polls %>%
-  filter(pop != 'US', pct_error == 0) %>%
-  group_by(end_date, mode) %>%
-  mutate(rank_vaccinated = frank(-pct_vaccinated))
-
-ggplot(all_polls_ranked %>% filter(pop == 'MA'), aes(x = end_date, y = rank_vaccinated, color = study_name)) +
-  geom_line() +
-  scale_color_manual(values = scale_values) +
-  theme_pubclean() +
-  labs(x = 2021, y = 'Vaccinated rank'
-       , title = 'MA rank over time')
-
