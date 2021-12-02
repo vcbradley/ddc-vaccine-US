@@ -13,6 +13,7 @@ plot_with_errorbands = function(data, outcome
     theme_pubr() +
     scale_color_manual(values = scale_values) +
     scale_fill_manual(values = scale_values, guide = 'none') +
+    scale_shape_manual(values = shape_values) +
     labs(x = NULL, color = 'Study', shape = 'Study') +
     theme(axis.title = element_text(size = 8),
           axis.text = element_text(size = 8),
@@ -236,7 +237,7 @@ makeCompPlot <- function(df, show_states, labels){
   # combine and add panel names
   inner_plots_top = ggarrange(plotlist = plotlist_top
                               , ncol = 3, nrow = 2
-                              , labels = c('A', 'B','C','D','E','F'))
+                              , labels = c('a', 'b','c','d','e','f'))
 
   # make full top plot
   full_top = wrap_plots(
@@ -267,7 +268,7 @@ makeCompPlot <- function(df, show_states, labels){
   # combine and add panel names
   inner_plots_bottom = ggarrange(plotlist = plotlist_bottom
                                  , ncol = 2, nrow = 2
-                                 , labels = c('G','H','I','J'))
+                                 , labels = c('g','h','i','j'))
   full_bottom = wrap_plots(wrap_plots(row_titles, ncol = 1)
                            , inner_plots_bottom
                            , widths = c(0.5, 8)
