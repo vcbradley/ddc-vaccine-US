@@ -131,7 +131,7 @@ fb_age_fmt <- fb_raw %>%
   mutate(study_name = 'Delphi-Facebook')
 
 # Create Household Pulse week level data ----
-hpdata = read_csv(file = glue("data/raw/census-household-pulse/microdata/chp_microdata_cleaned_waves22to29.csv"))
+hpdata = read_csv(file = glue("data/raw/census-household-pulse/microdata/chp_microdata_cleaned_waves22to29 (1).csv.gz"))
 
 hpdata_grp <- hpdata %>%
   mutate(age_group = case_when(age %in% 18:29 ~ "18-29",
@@ -308,7 +308,7 @@ plot_ddc_byage <- ggplot() +
        title = "unweighted ddc for 18-64 year olds")
 plot_ddc_byage
 
-plot_trend_by_age + plot_ddc_byage + plot_layout(nrow = 2, heights = c(1,1.5))
+plot_trend_by_age + plot_ddc_byage + plot_layout(nrow = 2, heights = c(1,1.5)) + plot_annotation(tag_levels = 'a')
 
-ggsave(filename = 'plots/fig_ddc_by_age.pdf', width= 7, height = 7)
+ggsave(filename = 'plots/fig_ddc_by_age.pdf', width= 7, height = 6)
 
