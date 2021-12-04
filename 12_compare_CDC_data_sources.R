@@ -1,6 +1,6 @@
 
 
-# from https://data.cdc.gov/Vaccinations/COVID-19-Vaccination-Trends-in-the-United-States-N/rh2h-3yt2
+# from https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-Jurisdi/unsk-b7fc
 cdc_jurisdiction_raw <- read_csv('~/Downloads/COVID-19_Vaccinations_in_the_United_States_Jurisdiction.csv')
 
 cdc_jurisdiction <- cdc_jurisdiction_raw %>%
