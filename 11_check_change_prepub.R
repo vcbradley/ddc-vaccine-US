@@ -33,6 +33,8 @@ cdc_demos <- cdc_demos_raw %>%
   mutate(pct_vaxxed_over18 = (n_vaxxed_over18 + n_vaxxed_unknown * (n_vaxxed_over18 / (n_vaxxed_over18 + n_vaxxed_under18)))/255200373)
 cdc_demos
 
+
+# combined all CDC data
 all_cdc_types <- bind_rows(all_cdc %>% mutate(download_type = 'natl') %>% select(-state, -download_num)
           , cdc_demos %>%
             rename(pct_pop_vaccinated = pct_vaxxed_over18
@@ -43,7 +45,7 @@ all_cdc_types <- bind_rows(all_cdc %>% mutate(download_type = 'natl') %>% select
           )
 
 
-
+# plot comparison
 plt_annot <- all_cdc_types %>%
   filter(date %in% seq(as.Date('2021-01-01'), as.Date('2021-07-01'), by = 15)
          , download_date %in% c("2021-05-26", '2021-12-03'))

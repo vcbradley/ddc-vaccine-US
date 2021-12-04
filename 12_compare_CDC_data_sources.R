@@ -55,11 +55,5 @@ ggplot() +
 
 
 
-# include our data ---------------------------
-
-all_polls <- read_csv('data/final/all_polls.csv') %>% filter(pct_error == 0, pop == 'US') %>% distinct()
-
-
-
 
 
