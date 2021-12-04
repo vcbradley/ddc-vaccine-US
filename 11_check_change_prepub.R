@@ -18,6 +18,8 @@ cdc_demos_raw <- read_csv('~/Downloads/COVID-19_Vaccination_Demographics_in_the_
 
 cdc_demos <- cdc_demos_raw %>%
   filter(grepl('Age', Demographic_category)) %>%
+  # the data already has a row for 12-17yrs. Need to drop these sub entries
+  filter(!Demographic_category %in% c("Ages_12-15_yrs", "Ages_16-17_yrs")) %>%
   mutate(date = as.Date(Date, tryFormats = c('%m/%d/%Y'))
          , under_18_flag = Demographic_category %in% c('Ages_12-17_yrs', 'Ages_5-11_yrs')
          , over_18_flag = !Demographic_category %in% c('Ages_12-17_yrs', 'Ages_5-11_yrs', 'Age_unknown', 'Age_known')
@@ -31,7 +33,6 @@ cdc_demos <- cdc_demos_raw %>%
             , n_vaxxed = sum(Administered_Dose1 * (known_flag))
   ) %>%
   mutate(pct_vaxxed_over18 = (n_vaxxed_over18 + n_vaxxed_unknown * (n_vaxxed_over18 / (n_vaxxed_over18 + n_vaxxed_under18)))/255200373)
-cdc_demos
 
 
 # combined all CDC data
